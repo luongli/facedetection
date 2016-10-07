@@ -33,7 +33,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QLabel" name="cameraView">
+   <widget class="my_qlabel" name="cameraView">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -68,6 +68,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>my_qlabel</class>
+   <extends>QLabel</extends>
+   <header>my_qlabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

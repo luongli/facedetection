@@ -9,5 +9,5 @@ my_qlabel::my_qlabel(QWidget *parent) : QLabel(parent)
 }
 
 void my_qlabel::mousePressEvent(QMouseEvent *ev) {
-    cout << "ok" << endl;
+    emit Mouse_Pressed();
 }
