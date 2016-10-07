@@ -16,10 +16,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    my_qlabel.cpp
+    my_qlabel.cpp \
+    Kalman.cpp \
+    HungarianAlg.cpp \
+    Ctracker.cpp
 
 HEADERS  += mainwindow.h \
-    my_qlabel.h
+    my_qlabel.h \
+    Kalman.h \
+    HungarianAlg.h \
+    Ctracker.h
 
 FORMS    += mainwindow.ui
 
