@@ -18,9 +18,18 @@
 #include "opencv2/objdetect.hpp"
 
 #include "my_qlabel.h"
+#include "Ctracker.h"
 
 using namespace cv;
 using namespace std;
+
+// global variables
+CTracker tracker(0.2, 0.5, 60.0, 10, 10); // create a tracker
+Scalar Colors[] = {
+    Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255),
+    Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
+    Scalar(255, 127, 255), Scalar(127, 0, 255), Scalar(127, 0, 127)
+};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -105,13 +114,20 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
     vector<Rect> faces;
     vector<Rect> eyes;
 
+    // variables used for tracking
+    vector<Point2d> centers;
+
     while(1) {
         cap >> frame;
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
+
+        // look for faces in the frame
         faceCascade.detectMultiScale(grayFrame, faces, 1.3);
+        centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
             // draw a reactangle bounding each face
             Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
+            centers.push_back(center);
             rectangle(frame, faces[i], Scalar(255,0,0), 2);
 
             // look for eyes in each face
@@ -122,11 +138,28 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
                 int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
                 circle( frame, center, radius, Scalar( 0, 255, 0 ), 4, 8, 0 );
             }
-
         }
+
+        // draw the trace of trackers
+        if (centers.size() > 0) {
+            tracker.Update(centers);
+            for (int i = 0; i < tracker.tracks.size(); i++) {
+                int traceNum = tracker.tracks[i]->trace.size();
+                if (traceNum>3){
+                    for (int j = 0; j<tracker.tracks[i]->trace.size() - 1; j++){
+                        line(frame, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], Colors[tracker.tracks[i]->track_id % 9], 1, CV_AA);
+                    }
+                    circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
+                }
+            }
+        }
+
         setImage(frame, ui->cameraView);
         //imshow("live video", frame);
-        if(waitKey(30) >= 0) break;
+        if(waitKey(30) >= 0) {
+            camOpened = false;
+            break;
+        }
     }
 }
 

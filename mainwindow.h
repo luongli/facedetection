@@ -21,6 +21,7 @@
 #include "opencv2/objdetect.hpp"
 
 #include "my_qlabel.h"
+#include "Ctracker.h"
 
 using namespace cv;
 using namespace std;
