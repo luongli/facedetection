@@ -64,6 +64,7 @@ void MainWindow::openCamera() {
         return;
     }
 
+    camOpened = true;
     namedWindow("live video", 1);
 
     if (loaded) {
@@ -100,15 +101,28 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
 
     Mat frame;
     Mat grayFrame;
+    Mat faceROI;
     vector<Rect> faces;
+    vector<Rect> eyes;
 
     while(1) {
         cap >> frame;
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
         faceCascade.detectMultiScale(grayFrame, faces, 1.3);
         for( size_t i = 0; i < faces.size(); i++ ) {
+            // draw a reactangle bounding each face
             Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
             rectangle(frame, faces[i], Scalar(255,0,0), 2);
+
+            // look for eyes in each face
+            faceROI = grayFrame(faces[i]);
+            eyesCascade.detectMultiScale(faceROI, eyes, 1.3, 2, 0, Size(30, 30));
+            for( size_t j = 0; j < eyes.size(); j++ ){
+                Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
+                int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
+                circle( frame, center, radius, Scalar( 0, 255, 0 ), 4, 8, 0 );
+            }
+
         }
         setImage(frame, ui->cameraView);
         //imshow("live video", frame);
