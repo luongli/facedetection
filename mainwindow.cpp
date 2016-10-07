@@ -15,6 +15,7 @@
 #include "opencv2/video/background_segm.hpp"
 #include <cv.h>
 #include <highgui.h>
+#include "opencv2/objdetect.hpp"
 
 #include "my_qlabel.h"
 
@@ -27,6 +28,21 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
+
+    faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
+    eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
+    loaded = true;
+    camOpened = false;
+
+    // load cascade file
+    if( !faceCascade.load( faceCascadeFile ) ){
+        cout << "Cannot load file " << faceCascadeFile << endl;
+        loaded = false;
+    }
+    if( !eyesCascade.load( eyesCascadeFile ) ){
+        cout << "Cannot load file " << eyesCascadeFile << endl;
+        loaded = false;
+    }
 }
 
 MainWindow::~MainWindow()
@@ -35,25 +51,29 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::openCamera() {
-    cout << "ok" << endl;
+
+    if (camOpened) {
+        cout << "Camera is being used" << endl;
+        return;
+    }
 
     // open camera
     VideoCapture cap(0); // default camera
-
     if(!cap.isOpened()) {
         cout << "Cannot open camera" << endl;
         return;
     }
 
-    Mat frame;
     namedWindow("live video", 1);
 
-    while(1) {
-        cap >> frame;
-        imshow("live video", frame);
-        setImage(frame, ui->cameraView);
-        if(waitKey(30) >= 0) break;
+    if (loaded) {
+        // if cascade files are loaded successfully
+        // detect eyes & faces
+        detectFaceAndEyes(cap);
+    } else {
+        showCamera(cap);
     }
+
 
     cout << "finished" << endl;
 }
@@ -72,4 +92,37 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
         label->setPixmap(QPixmap::fromImage(qimgOriginal));
     }
 
+}
+
+void MainWindow::detectFaceAndEyes(VideoCapture cap) {
+
+    if (!loaded) return;
+
+    Mat frame;
+    Mat grayFrame;
+    vector<Rect> faces;
+
+    while(1) {
+        cap >> frame;
+        cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
+        faceCascade.detectMultiScale(grayFrame, faces, 1.3);
+        for( size_t i = 0; i < faces.size(); i++ ) {
+            Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
+            rectangle(frame, faces[i], Scalar(255,0,0), 2);
+        }
+        setImage(frame, ui->cameraView);
+        //imshow("live video", frame);
+        if(waitKey(30) >= 0) break;
+    }
+}
+
+void MainWindow::showCamera(VideoCapture cap) {
+    Mat frame;
+
+    while(1) {
+        cap >> frame;
+        imshow("live video", frame);
+        setImage(frame, ui->cameraView);
+        if(waitKey(30) >= 0) break;
+    }
 }

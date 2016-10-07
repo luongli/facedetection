@@ -18,6 +18,7 @@
 #include "opencv2/video/background_segm.hpp"
 #include <cv.h>
 #include <highgui.h>
+#include "opencv2/objdetect.hpp"
 
 #include "my_qlabel.h"
 
@@ -41,6 +42,14 @@ public slots:
     void openCamera();
 private:
     Ui::MainWindow *ui;
+    String faceCascadeFile;
+    String eyesCascadeFile;
+    bool loaded;
+    bool camOpened;
+    CascadeClassifier faceCascade;
+    CascadeClassifier eyesCascade;
+    void detectFaceAndEyes(VideoCapture cap);
+    void showCamera(VideoCapture cap);
 };
 
 #endif // MAINWINDOW_H
