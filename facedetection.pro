@@ -45,4 +45,4 @@ LIBS += -L/usr/local/lib \
 -lopencv_videoio \
 -lopencv_videostab \
 -lopencv_viz \
--lvibe++
+
