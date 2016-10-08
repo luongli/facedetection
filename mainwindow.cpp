@@ -119,6 +119,8 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
 
     while(1) {
         cap >> frame;
+        // in case using front camera, flip image around y axis
+        flip(frame, frame, 1);
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
@@ -168,6 +170,8 @@ void MainWindow::showCamera(VideoCapture cap) {
 
     while(1) {
         cap >> frame;
+        // in case using front camera, flip image around y axis
+        flip(frame, frame, 1);
         imshow("live video", frame);
         setImage(frame, ui->cameraView);
         if(waitKey(30) >= 0) break;
