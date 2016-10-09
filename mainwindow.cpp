@@ -5,6 +5,8 @@
 #include <QObject>
 #include <stdio.h>
 #include <stdlib.h>
+#include <QCloseEvent>
+#include <QShowEvent>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -40,8 +42,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
+    facesPath = "../facedetection/faces/";
+    configPath = "../facedetection/config/";
+    loadLogos();
     loaded = true;
     camOpened = false;
+    openning = true;
+    peopleCount = 0;
+    faceIndex = loadFaceIndex();
+    // params to save images
+    compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+    compression_params.push_back(5);
 
     // load cascade file
     if( !faceCascade.load( faceCascadeFile ) ){
@@ -59,6 +70,44 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::closeEvent(QCloseEvent *ev) {
+    cout << "closing" << endl;
+    saveFaceIndex();
+    openning = false;
+    cap->release();
+    delete cap;
+    destroyAllWindows();
+}
+
+void MainWindow::showEvent(QShowEvent *ev) {
+    setLogos();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *ev) {
+    setLogos();
+}
+
+void MainWindow::setLogos() {
+    // display logos
+    if (hustLogo.data) {
+        setImage(hustLogo, ui->hustLogo);
+    } else {
+        cout << "Hust logo is not loaded " << endl;
+    }
+
+    if (soictLogo.data) {
+        setImage(soictLogo, ui->soictLogo);
+    } else {
+        cout << "Soict logo is not loaded " << endl;
+    }
+
+    if (celebrateLogo.data) {
+        setImage(celebrateLogo, ui->cameraView);
+    } else {
+        cout << "celebrate logo is not loaded" << endl;
+    }
+}
+
 void MainWindow::openCamera() {
 
     if (camOpened) {
@@ -67,8 +116,8 @@ void MainWindow::openCamera() {
     }
 
     // open camera
-    VideoCapture cap(0); // default camera
-    if(!cap.isOpened()) {
+    cap = new VideoCapture(0); // default camera
+    if(!cap->isOpened()) {
         cout << "Cannot open camera" << endl;
         return;
     }
@@ -79,13 +128,13 @@ void MainWindow::openCamera() {
     if (loaded) {
         // if cascade files are loaded successfully
         // detect eyes & faces
-        detectFaceAndEyes(cap);
+        detectFaceAndEyes();
     } else {
-        showCamera(cap);
+        showCamera();
     }
 
 
-    cout << "finished" << endl;
+    cout << "paused" << endl;
 }
 
 
@@ -104,27 +153,31 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
 
 }
 
-void MainWindow::detectFaceAndEyes(VideoCapture cap) {
+void MainWindow::detectFaceAndEyes() {
 
     if (!loaded) return;
 
+    Mat original;
     Mat frame;
     Mat grayFrame;
     Mat faceROI;
+    Mat faceToSave;
     vector<Rect> faces;
     vector<Rect> eyes;
 
     // variables used for tracking
     vector<Point2d> centers;
+    vector<int> newDetections;
 
-    while(1) {
-        cap >> frame;
+    while(openning) {
+        *cap >> original;
+        frame = original.clone();
         // in case using front camera, flip image around y axis
         flip(frame, frame, 1);
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
-        faceCascade.detectMultiScale(grayFrame, faces, 1.3);
+        faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(30, 30));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
             // draw a reactangle bounding each face
@@ -144,7 +197,7 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
 
         // draw the trace of trackers
         if (centers.size() > 0) {
-            tracker.Update(centers);
+            tracker.Update(centers, newDetections);
             for (int i = 0; i < tracker.tracks.size(); i++) {
                 int traceNum = tracker.tracks[i]->trace.size();
                 if (traceNum>3){
@@ -154,26 +207,100 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
                     circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
                 }
             }
+
+            if(newDetections.size() > 0) {
+                // if we have new faces
+                // save those faces
+                for (int i = 0; i < newDetections.size(); i++) {
+                    faceToSave = original(faces[newDetections[i]]);
+                    saveFace(faceToSave);
+                    rectangle(frame, faces[newDetections[i]], Scalar(rand()%256,rand()%256, rand()%256), -1);
+                    peopleCount++;
+                    ui->lcdNumber->display(peopleCount);
+                }
+            }
         }
 
         setImage(frame, ui->cameraView);
-        //imshow("live video", frame);
+        imshow("live video", frame);
         if(waitKey(30) >= 0) {
+            cap->release();
             camOpened = false;
             break;
         }
     }
 }
 
-void MainWindow::showCamera(VideoCapture cap) {
+void MainWindow::showCamera() {
     Mat frame;
 
-    while(1) {
-        cap >> frame;
+    while(openning) {
+        *cap >> frame;
         // in case using front camera, flip image around y axis
         flip(frame, frame, 1);
         imshow("live video", frame);
         setImage(frame, ui->cameraView);
-        if(waitKey(30) >= 0) break;
+        if(waitKey(30) >= 0) {
+            cap->release();
+            camOpened = false;
+            break;
+        }
+    }
+}
+
+
+void MainWindow::loadLogos() {
+    hustLogo = imread(logoPath + "hust.png", CV_LOAD_IMAGE_COLOR);
+    soictLogo = imread(logoPath + "soict.png", CV_LOAD_IMAGE_COLOR);
+    celebrateLogo = imread(logoPath + "logo60.png", CV_LOAD_IMAGE_COLOR);
+}
+
+
+/**********************************************************************
+ * This function will save captured face into the disk at faces folder
+ * and put the preview of that faces into the top qlistview
+ * *******************************************************************/
+void MainWindow::saveFace(Mat faceToSave) {
+    stringstream ss;
+    ss << faceIndex;
+    String fileName = ss.str();
+    try {
+        imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
+        faceIndex++;
+    } catch (runtime_error& ex) {
+        ui->statusBar->showMessage("Exception converting image to PNG format");
+    }
+}
+
+
+int MainWindow::loadFaceIndex() {
+    ui->statusBar->showMessage("Loading face index...");
+    ifstream input((configPath + "face-index.conf").c_str(), ios::in);
+    int index = -1;
+    if(input.is_open()) {
+        input >> index;
+        input.close();
+        ui->statusBar->clearMessage();
+        return index;
+    } else {
+        cout << "Be careful! face index is not loaded successfully" << endl;
+        ui->statusBar->showMessage("Error: face index is not loaded successfully", 1000);
+        return 0;
+    }
+}
+
+
+void MainWindow::saveFaceIndex() {
+    ui->statusBar->showMessage("Saving face index...");
+    ofstream output((configPath + "face-index.conf").c_str(), ios::out|ios::trunc);
+    if(output.is_open()) {
+        // if the file is open successfully
+
+        output << faceIndex << "\n";
+        output.close();
+        ui->statusBar->showMessage("Face index saved", 1000);
+    } else {
+        cout << "cannot open file" << endl;
+        ui->statusBar->showMessage("Error: Cannot save face index", 1000);
     }
 }
