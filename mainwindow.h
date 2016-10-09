@@ -8,6 +8,7 @@
 #include <QObject>
 #include <stdio.h>
 #include <stdlib.h>
+#include <QCloseEvent>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -45,12 +46,17 @@ private:
     Ui::MainWindow *ui;
     String faceCascadeFile;
     String eyesCascadeFile;
-    bool loaded;
-    bool camOpened;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
-    void detectFaceAndEyes(VideoCapture cap);
-    void showCamera(VideoCapture cap);
+    VideoCapture* cap;
+    bool loaded;
+    bool camOpened;
+    bool openning;
+    int peopleCount;
+
+    void detectFaceAndEyes();
+    void showCamera();
+    void closeEvent(QCloseEvent *ev);
 };
 
 #endif // MAINWINDOW_H

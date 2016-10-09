@@ -5,6 +5,7 @@
 #include <QObject>
 #include <stdio.h>
 #include <stdlib.h>
+#include <QCloseEvent>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -42,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
     loaded = true;
     camOpened = false;
+    openning = true;
+    peopleCount = 0;
 
     // load cascade file
     if( !faceCascade.load( faceCascadeFile ) ){
@@ -59,6 +62,14 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::closeEvent(QCloseEvent *ev) {
+    cout << "closing" << endl;
+    openning = false;
+    cap->release();
+    delete cap;
+    destroyAllWindows();
+}
+
 void MainWindow::openCamera() {
 
     if (camOpened) {
@@ -67,8 +78,8 @@ void MainWindow::openCamera() {
     }
 
     // open camera
-    VideoCapture cap(0); // default camera
-    if(!cap.isOpened()) {
+    cap = new VideoCapture(0); // default camera
+    if(!cap->isOpened()) {
         cout << "Cannot open camera" << endl;
         return;
     }
@@ -79,13 +90,13 @@ void MainWindow::openCamera() {
     if (loaded) {
         // if cascade files are loaded successfully
         // detect eyes & faces
-        detectFaceAndEyes(cap);
+        detectFaceAndEyes();
     } else {
-        showCamera(cap);
+        showCamera();
     }
 
 
-    cout << "finished" << endl;
+    cout << "paused" << endl;
 }
 
 
@@ -104,7 +115,7 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
 
 }
 
-void MainWindow::detectFaceAndEyes(VideoCapture cap) {
+void MainWindow::detectFaceAndEyes() {
 
     if (!loaded) return;
 
@@ -116,15 +127,16 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
 
     // variables used for tracking
     vector<Point2d> centers;
+    vector<int> newDetections;
 
-    while(1) {
-        cap >> frame;
+    while(openning) {
+        *cap >> frame;
         // in case using front camera, flip image around y axis
         flip(frame, frame, 1);
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
-        faceCascade.detectMultiScale(grayFrame, faces, 1.3);
+        faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(30, 30));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
             // draw a reactangle bounding each face
@@ -144,7 +156,7 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
 
         // draw the trace of trackers
         if (centers.size() > 0) {
-            tracker.Update(centers);
+            tracker.Update(centers, newDetections);
             for (int i = 0; i < tracker.tracks.size(); i++) {
                 int traceNum = tracker.tracks[i]->trace.size();
                 if (traceNum>3){
@@ -154,26 +166,40 @@ void MainWindow::detectFaceAndEyes(VideoCapture cap) {
                     circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
                 }
             }
+
+            if(newDetections.size() > 0) {
+                // if we have new faces
+                // save those faces
+                for (int i = 0; i < newDetections.size(); i++) {
+                    rectangle(frame, faces[newDetections[i]], Scalar(rand()%256,rand()%256, rand()%256), -1);
+                    peopleCount++;
+                }
+            }
         }
 
         setImage(frame, ui->cameraView);
         //imshow("live video", frame);
         if(waitKey(30) >= 0) {
+            cap->release();
             camOpened = false;
             break;
         }
     }
 }
 
-void MainWindow::showCamera(VideoCapture cap) {
+void MainWindow::showCamera() {
     Mat frame;
 
-    while(1) {
-        cap >> frame;
+    while(openning) {
+        *cap >> frame;
         // in case using front camera, flip image around y axis
         flip(frame, frame, 1);
         imshow("live video", frame);
         setImage(frame, ui->cameraView);
-        if(waitKey(30) >= 0) break;
+        if(waitKey(30) >= 0) {
+            cap->release();
+            camOpened = false;
+            break;
+        }
     }
 }
