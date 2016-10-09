@@ -49,16 +49,20 @@ private:
     String faceCascadeFile;
     String eyesCascadeFile;
     String logoPath = "../facedetection/logo/";
+    String facesPath;
+    String configPath;
     Mat hustLogo;
     Mat soictLogo;
     Mat celebrateLogo;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
     VideoCapture* cap;
+    vector<int> compression_params;
     bool loaded;
     bool camOpened;
     bool openning;
     int peopleCount;
+    int faceIndex;
 
     void detectFaceAndEyes();
     void showCamera();
@@ -67,6 +71,9 @@ private:
     void resizeEvent(QResizeEvent *ev);
     void loadLogos();
     void setLogos();
+    void saveFace(Mat faceToSave);
+    int loadFaceIndex();
+    void saveFaceIndex();
 };
 
 #endif // MAINWINDOW_H

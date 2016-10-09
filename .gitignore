@@ -1,2 +1,4 @@
 # configure file of qt
 *.pro.user
+# captured faces
+faces/*
