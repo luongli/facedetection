@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <QCloseEvent>
+#include <QShowEvent>
+#include <QResizeEvent>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -46,6 +48,10 @@ private:
     Ui::MainWindow *ui;
     String faceCascadeFile;
     String eyesCascadeFile;
+    String logoPath = "../facedetection/logo/";
+    Mat hustLogo;
+    Mat soictLogo;
+    Mat celebrateLogo;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
     VideoCapture* cap;
@@ -57,6 +63,10 @@ private:
     void detectFaceAndEyes();
     void showCamera();
     void closeEvent(QCloseEvent *ev);
+    void showEvent(QShowEvent *ev);
+    void resizeEvent(QResizeEvent *ev);
+    void loadLogos();
+    void setLogos();
 };
 
 #endif // MAINWINDOW_H

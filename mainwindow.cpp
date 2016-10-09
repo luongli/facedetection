@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <QCloseEvent>
+#include <QShowEvent>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
+    loadLogos();
     loaded = true;
     camOpened = false;
     openning = true;
@@ -68,6 +70,35 @@ void MainWindow::closeEvent(QCloseEvent *ev) {
     cap->release();
     delete cap;
     destroyAllWindows();
+}
+
+void MainWindow::showEvent(QShowEvent *ev) {
+    setLogos();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *ev) {
+    setLogos();
+}
+
+void MainWindow::setLogos() {
+    // display logos
+    if (hustLogo.data) {
+        setImage(hustLogo, ui->hustLogo);
+    } else {
+        cout << "Hust logo is not loaded " << endl;
+    }
+
+    if (soictLogo.data) {
+        setImage(soictLogo, ui->soictLogo);
+    } else {
+        cout << "Soict logo is not loaded " << endl;
+    }
+
+    if (celebrateLogo.data) {
+        setImage(celebrateLogo, ui->cameraView);
+    } else {
+        cout << "celebrate logo is not loaded" << endl;
+    }
 }
 
 void MainWindow::openCamera() {
@@ -202,4 +233,11 @@ void MainWindow::showCamera() {
             break;
         }
     }
+}
+
+
+void MainWindow::loadLogos() {
+    hustLogo = imread(logoPath + "hust.png", CV_LOAD_IMAGE_COLOR);
+    soictLogo = imread(logoPath + "soict.png", CV_LOAD_IMAGE_COLOR);
+    celebrateLogo = imread(logoPath + "logo60.png", CV_LOAD_IMAGE_COLOR);
 }
