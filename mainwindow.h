@@ -63,6 +63,7 @@ private:
     bool openning;
     int peopleCount;
     int faceIndex;
+    double dstThreshold;
 
     void detectFaceAndEyes();
     void showCamera();

@@ -12,10 +12,13 @@ class CTrack
 public:
     vector<Point2d> trace;
     static size_t NextTrackID;
+    bool captured;
     size_t track_id;
     size_t skipped_frames;
     size_t crossBorder;
     Point2d prediction;
+    int assignedDetectionId;
+    int age;
     TKalmanFilter* KF;
     CTrack(Point2f p, float dt, float Accel_noise_mag);
     ~CTrack();
