@@ -200,9 +200,7 @@ void MainWindow::detectFaceAndEyes() {
         if (centers.size() > 0) {
             tracker.Update(centers, newDetections);
             int traceNum = 0;
-            cout << "track size: " << tracker.tracks.size() << endl;
             for (int i = 0; i < tracker.tracks.size(); i++) {
-                cout << "trackid: " << tracker.tracks[i]->track_id << " capture: " << tracker.tracks[i]->captured << endl;
                 traceNum = tracker.tracks[i]->trace.size();
                 if (traceNum>3){
                     for (int j = 0; j<tracker.tracks[i]->trace.size() - 1; j++){
