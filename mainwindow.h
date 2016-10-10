@@ -41,16 +41,26 @@ public:
 
 public slots:
     void openCamera();
+private slots:
+    //void on_pushButton_clicked();
+
+    //void on_label_linkActivated(const QString &link);
+
+    //void on_imgslide_linkActivated(const QString &link);
+
 private:
     Ui::MainWindow *ui;
     String faceCascadeFile;
     String eyesCascadeFile;
     bool loaded;
     bool camOpened;
+    bool imgloaded;
+    bool imgOpened;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
     void detectFaceAndEyes(VideoCapture cap);
     void showCamera(VideoCapture cap);
+
 };
 
 #endif // MAINWINDOW_H

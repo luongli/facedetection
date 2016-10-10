@@ -5,6 +5,8 @@
 #include <QObject>
 #include <stdio.h>
 #include <stdlib.h>
+#include <QPixmap>
+#include <QFileDialog>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -37,6 +39,62 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
+
+
+    //QPixmap pix("/home/hembit/workspace/C++/images/logoBK.jpg");
+    //ui->imgslide->setPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
+//    QString fileName = QFileDialog::getOpenFileName(this,
+//      tr("Open Images"), "/home/hembit/workspace/C++/images/logoBK.jpg", tr("Image Files (*.png *.jpg *.bmp)"));
+//      ui->imgslide->setPixmap(QPixmap::fromImage(fileName));
+
+    QDir dir("/home/hembit/workspace/C++/images/");
+    dir.setNameFilters(QStringList() << "*.png" << "*.jpg");
+    QStringList fileList = dir.entryList();
+
+    QGraphicsScene* scene = new QGraphicsScene();
+
+    //QGraphicsView* view = new QGraphicsView(scene);
+
+    //qDebug() << fileList;
+    foreach (QString path, fileList)
+    {
+        // do what you want, for example, create a new QLabel here
+        //qDebug() << path;
+//        QImage image;
+//        bool valid = image.load(path);
+//        QLabel* label = new QLabel;
+//        label->setPixmap(QPixmap::fromImage(image));
+//        layout()->addWidget(label);
+
+        QLabel *imageLabel = new QLabel;
+        //QImage image;
+        //bool valid = image.load("/home/hembit/workspace/C++/images/" + path);
+        //image.load("/home/hembit/workspace/C++/images/" + path);
+        //imageLabel->setPixmap(QPixmap::fromImage(image));
+//        if(valid)
+//            ui->labelImage->setPixmap(QPixmap::fromImage(image));
+//        else {
+//            cout << "Cant load image" << endl;
+//            return;
+//        }
+        //scrollArea = new QScrollArea;
+//        ui->scrollImage->setBackgroundRole(QPalette::Dark);
+//        ui->scrollImage->setWidget(imageLabel);
+
+//        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+//        scene->addItem(item);
+//        ui->graphicsImage->show();
+
+        QPixmap pix("/home/hembit/workspace/C++/images/" + path);
+        imageLabel->setPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
+        //ui->verticalLayout->addWidget(imageLabel);
+        QGraphicsProxyWidget *proxy = scene->addWidget(imageLabel);
+
+    }
+    ui->graphicsImage->setScene(scene);
+
+    //LCD box
+
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
@@ -177,3 +235,9 @@ void MainWindow::showCamera(VideoCapture cap) {
         if(waitKey(30) >= 0) break;
     }
 }
+
+//void MainWindow::openImages(const QString &link)
+//{
+//    cout << "Images is being used" << endl;
+//    return;
+//}
