@@ -26,21 +26,14 @@ class CTracker
 {
 public:
 
-    // Ўаг времени опроса фильтра
     float dt;
-
     float Accel_noise_mag;
-
-    // ѕорог рассто€ни€. ≈сли точки наход€тс€ дуг от друга на рассто€нии,
-    // превышающем этот порог, то эта пара не рассматриваетс€ в задаче о назначени€х.
     double dist_thres;
-    // ћаксимальное количество кадров которое трек сохран€етс€ не получа€ данных о измерений.
     int maximum_allowed_skipped_frames;
-    // ћаксимальна€ длина следа
     int max_trace_length;
 
     vector<CTrack*> tracks;
-    void Update(vector<Point2d>& detections);
+    void Update(vector<Point2d>& detections, vector<int>& newDetections);
     CTracker(float _dt, float _Accel_noise_mag, double _dist_thres=60, int _maximum_allowed_skipped_frames=10,int _max_trace_length=10);
     ~CTracker(void);
 };

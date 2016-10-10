@@ -41,10 +41,13 @@ maximum_allowed_skipped_frames=_maximum_allowed_skipped_frames;
 max_trace_length=_max_trace_length;
 }
 // ---------------------------------------------------------------------------
-//
+// indexs of new detected centers in detections vector are stored in newDetections vector
 // ---------------------------------------------------------------------------
-void CTracker::Update(vector<Point2d>& detections)
+void CTracker::Update(vector<Point2d>& detections, vector<int>& newDetections)
 {
+    // clear the new detections vector
+    newDetections.clear();
+
     // -----------------------------------
     // If there is no tracks yet, then every point begins its own track.
     // -----------------------------------
@@ -55,6 +58,7 @@ void CTracker::Update(vector<Point2d>& detections)
         {
             CTrack* tr=new CTrack(detections[i],dt,Accel_noise_mag);
             tracks.push_back(tr);
+            newDetections.push_back(i);
         }
     }
 
@@ -151,6 +155,7 @@ void CTracker::Update(vector<Point2d>& detections)
         {
             CTrack* tr=new CTrack(detections[not_assigned_detections[i]],dt,Accel_noise_mag);
             tracks.push_back(tr);
+            newDetections.push_back(not_assigned_detections[i]);
         }
     }
 

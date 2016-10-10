@@ -19,15 +19,13 @@ SOURCES += main.cpp\
     my_qlabel.cpp \
     Kalman.cpp \
     HungarianAlg.cpp \
-    Ctracker.cpp \
-    my_lcd.cpp
+    Ctracker.cpp
 
 HEADERS  += mainwindow.h \
     my_qlabel.h \
     Kalman.h \
     HungarianAlg.h \
-    Ctracker.h \
-    my_lcd.h
+    Ctracker.h
 
 FORMS    += mainwindow.ui
 
