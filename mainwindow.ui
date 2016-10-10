@@ -7,31 +7,27 @@
     <x>0</x>
     <y>0</y>
     <width>796</width>
-    <height>477</height>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-
    <property name="enabled">
     <bool>true</bool>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QListView" name="listView">
+     <widget class="QGraphicsView" name="ImageView">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>120</height>
-       </size>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
@@ -138,7 +134,6 @@
      </widget>
     </item>
    </layout>
-
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -155,7 +150,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>
@@ -166,11 +161,6 @@
    <class>my_qlabel</class>
    <extends>QLabel</extends>
    <header location="global">my_qlabel.h</header>
-  </customwidget>
-  <customwidget>
-   <class>my_LCD</class>
-   <extends>QLCDNumber</extends>
-   <header location="global">my_lcd.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

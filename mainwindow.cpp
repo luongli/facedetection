@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QCloseEvent>
 #include <QShowEvent>
+#include <QGraphicsPixmapItem>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -49,14 +50,16 @@ MainWindow::MainWindow(QWidget *parent) :
 //      tr("Open Images"), "/home/hembit/workspace/C++/images/logoBK.jpg", tr("Image Files (*.png *.jpg *.bmp)"));
 //      ui->imgslide->setPixmap(QPixmap::fromImage(fileName));
 
-    QDir dir("/home/hembit/workspace/C++/images/");
+    QDir dir("/home/hembit/workspace/C++/facedetection/images/");
     dir.setNameFilters(QStringList() << "*.png" << "*.jpg");
     QStringList fileList = dir.entryList();
 
-    //QGraphicsScene* scene = new QGraphicsScene();
-
-    //QGraphicsView* view = new QGraphicsView(scene);
-
+    QGraphicsScene* scene = new QGraphicsScene();
+    QGraphicsView* view = ui->ImageView;
+    QGraphicsRectItem	*	pRect = new QGraphicsRectItem( 0, 0, 0, 0 );
+    pRect->setBrush( Qt::white );
+    scene->addItem(pRect);
+    int position = 0;
     //qDebug() << fileList;
     foreach (QString path, fileList)
     {
@@ -68,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //        label->setPixmap(QPixmap::fromImage(image));
 //        layout()->addWidget(label);
 
-        QLabel *imageLabel = new QLabel;
+        //QLabel *imageLabel = new QLabel;
         //QImage image;
         //bool valid = image.load("/home/hembit/workspace/C++/images/" + path);
         //image.load("/home/hembit/workspace/C++/images/" + path);
@@ -83,19 +86,32 @@ MainWindow::MainWindow(QWidget *parent) :
 //        ui->scrollImage->setBackgroundRole(QPalette::Dark);
 //        ui->scrollImage->setWidget(imageLabel);
 
-//        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-//        scene->addItem(item);
+        //QGraphicsPixmapItem* item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+        //scene->addItem(item);
 //        ui->graphicsImage->show();
 
-        QPixmap pix("/home/hembit/workspace/C++/images/" + path);
-        imageLabel->setPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
+        QPixmap pix("/home/hembit/workspace/C++/facedetection/images/" + path);
+        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(160,160,Qt::KeepAspectRatio),pRect);
+
+
+        //scene->addPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
+        item->setParentItem(pRect);
+
+        item->setPos(position*160,0);
+        scene->addItem(item);
+
+        position++;
+        cout << position << endl;
+
+        //imageLabel->setPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
         //ui->verticalLayout->addWidget(imageLabel);
         //QGraphicsProxyWidget *proxy = scene->addWidget(imageLabel);
 
     }
-    //ui->graphicsImage->setScene(scene);
+    view->setScene(scene);
+    view->show();
 
-    //LCD box
+
 
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
