@@ -11,6 +11,7 @@
 #include <QCloseEvent>
 #include <QShowEvent>
 #include <QResizeEvent>
+#include <QInputDialog>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -43,7 +44,8 @@ public:
     ~MainWindow();
 
 public slots:
-    void openCamera(String source = "");
+    void openCamera(String source = "");    
+    void openIpCamera();
 private slots:
     //void on_pushButton_clicked();
 

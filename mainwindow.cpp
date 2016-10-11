@@ -11,6 +11,7 @@
 #include <QShowEvent>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QInputDialog>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -86,6 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
+    connect(ui->actionDefault_camera, SIGNAL(triggered(bool)), this, SLOT(openCamera()));
+    connect(ui->actionIP_camera, SIGNAL(triggered(bool)), this, SLOT(openIpCamera()));
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
@@ -408,5 +411,18 @@ void MainWindow::saveFaceIndex() {
     } else {
         cout << "cannot open file" << endl;
         ui->statusBar->showMessage("Error: Cannot save face index", 1000);
+    }
+}
+
+
+void MainWindow::openIpCamera() {
+    // ask for video link
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Video Stream Adress"),
+                                         tr("Input video stream address including username and password of the ip camera"), QLineEdit::Normal,
+                                         QDir::home().dirName(), &ok);
+    if (ok && !text.isEmpty()) {
+        String address = text.toStdString();
+        openCamera(address);
     }
 }
