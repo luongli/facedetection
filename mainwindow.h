@@ -43,7 +43,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void openCamera();
+    void openCamera(String source = "");
 private slots:
     //void on_pushButton_clicked();
 
@@ -61,9 +61,9 @@ private:
     Mat hustLogo;
     Mat soictLogo;
     Mat celebrateLogo;
+    VideoCapture vcap;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
-    VideoCapture* cap;
     vector<int> compression_params;
     bool loaded;
     bool camOpened;
@@ -72,7 +72,7 @@ private:
     int faceIndex;
     double dstThreshold;
 
-    void detectFaceAndEyes(VideoCapture vcap);
+    void detectFaceAndEyes();
     void showCamera();
     void closeEvent(QCloseEvent *ev);
     void showEvent(QShowEvent *ev);
