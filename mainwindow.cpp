@@ -314,15 +314,18 @@ void MainWindow::saveFace(Mat faceToSave) {
     try {
         imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
-
-        QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) faceToSave.data, faceToSave.cols, faceToSave.rows, faceToSave.step, QImage::Format_RGB888));
         QGraphicsView* view = ui->ImageView;
+//        view->show();
+        QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) faceToSave.data, faceToSave.cols, faceToSave.rows, faceToSave.step, QImage::Format_RGB888));
+
         QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
         item->setParentItem(pRect);
         item->setPos(position*100,0);
         scene->addItem(item);
-        QPointF center = item->mapToScene(0,0);
+
+
+
         position++;
 
 
@@ -339,12 +342,18 @@ void MainWindow::saveFace(Mat faceToSave) {
             delete graphicItem;
 
             locate++;
-            view->centerOn(center);
+
             view->setScene(scene);
+            QPointF center = item->mapToScene(0,0);
+            //QPointF center = view->mapToScene(view->viewport()->rect()).boundingRect();
+            view->centerOn(center);
             view->show();
         } else {
-            view->centerOn(center);
+
             view->setScene(scene);
+            QPointF center = item->mapToScene(0,0);
+            //QPointF center = view->mapToScene(view->viewport()->rect()).boundingRect();
+            view->centerOn(center);
             view->show();
         }
 
