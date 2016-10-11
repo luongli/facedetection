@@ -60,6 +60,7 @@ private:
     String configPath;
     Mat hustLogo;
     Mat soictLogo;
+    Mat celebrateBg;
     Mat celebrateLogo;
     VideoCapture vcap;
     CascadeClassifier faceCascade;

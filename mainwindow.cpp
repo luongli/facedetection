@@ -111,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cout << "Cannot load file " << eyesCascadeFile << endl;
         loaded = false;
     }
+    ui->lcdNumber->display(90000);
 }
 
 MainWindow::~MainWindow()
@@ -148,8 +149,15 @@ void MainWindow::setLogos() {
         cout << "Soict logo is not loaded " << endl;
     }
 
+    if (celebrateBg.data) {
+        setImage(celebrateBg, ui->cameraView);
+        setImage(celebrateLogo, ui->celebrateLogo);
+    } else {
+        cout << "celebrate background is not loaded" << endl;
+    }
+
     if (celebrateLogo.data) {
-        setImage(celebrateLogo, ui->cameraView);
+        setImage(celebrateLogo, ui->celebrateLogo);
     } else {
         cout << "celebrate logo is not loaded" << endl;
     }
@@ -313,8 +321,9 @@ void MainWindow::showCamera() {
 
 void MainWindow::loadLogos() {
     hustLogo = imread(logoPath + "hust.png", CV_LOAD_IMAGE_COLOR);
-    soictLogo = imread(logoPath + "soict.png", CV_LOAD_IMAGE_COLOR);
+    soictLogo = imread(logoPath + "soict.jpg", CV_LOAD_IMAGE_COLOR);
     celebrateLogo = imread(logoPath + "logo60.png", CV_LOAD_IMAGE_COLOR);
+    celebrateBg = imread(logoPath + "logo60bg.png", CV_LOAD_IMAGE_COLOR);
 }
 
 
