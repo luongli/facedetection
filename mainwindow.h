@@ -70,8 +70,9 @@ private:
     bool openning;
     int peopleCount;
     int faceIndex;
+    double dstThreshold;
 
-    void detectFaceAndEyes();
+    void detectFaceAndEyes(VideoCapture vcap);
     void showCamera();
     void closeEvent(QCloseEvent *ev);
     void showEvent(QShowEvent *ev);

@@ -97,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent) :
     openning = true;
     peopleCount = 0;
     faceIndex = loadFaceIndex();
+    dstThreshold = 3;
     // params to save images
     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(5);
@@ -162,11 +163,15 @@ void MainWindow::openCamera() {
         return;
     }
 
+    String videoAddress = "http://ip/mjpg/video.mjpg";
+    VideoCapture vcap;
     // open camera
-    cap = new VideoCapture(0); // default camera
-    if(!cap->isOpened()) {
+    //cap = new VideoCapture(0); // default camera
+    if(!vcap.open(videoAddress)) {
         cout << "Cannot open camera" << endl;
         return;
+    } else {
+        cout << "open camera successfully" << endl;
     }
 
     camOpened = true;
@@ -175,7 +180,7 @@ void MainWindow::openCamera() {
     if (loaded) {
         // if cascade files are loaded successfully
         // detect eyes & faces
-        detectFaceAndEyes();
+        detectFaceAndEyes(vcap);
     } else {
         showCamera();
     }
@@ -200,7 +205,7 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
 
 }
 
-void MainWindow::detectFaceAndEyes() {
+void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
 
     if (!loaded) return;
 
@@ -217,10 +222,15 @@ void MainWindow::detectFaceAndEyes() {
     vector<int> newDetections;
 
     while(openning) {
-        *cap >> original;
-        frame = original.clone();
+        if(!vcap.read(original)) {
+            cout << "no frame" << endl;
+            break;
+        } else {
+            cout << "read camera successfully" << endl;
+        }
         // in case using front camera, flip image around y axis
-        flip(frame, frame, 1);
+        flip(original, original, 1);
+        frame = original.clone();
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
@@ -245,27 +255,43 @@ void MainWindow::detectFaceAndEyes() {
         // draw the trace of trackers
         if (centers.size() > 0) {
             tracker.Update(centers, newDetections);
+            int traceNum = 0;
             for (int i = 0; i < tracker.tracks.size(); i++) {
-                int traceNum = tracker.tracks[i]->trace.size();
+                traceNum = tracker.tracks[i]->trace.size();
                 if (traceNum>3){
                     for (int j = 0; j<tracker.tracks[i]->trace.size() - 1; j++){
                         line(frame, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], Colors[tracker.tracks[i]->track_id % 9], 1, CV_AA);
                     }
                     circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
                 }
-            }
-
-            if(newDetections.size() > 0) {
-                // if we have new faces
-                // save those faces
-                for (int i = 0; i < newDetections.size(); i++) {
-                    faceToSave = original(faces[newDetections[i]]);
-                    saveFace(faceToSave);
-                    rectangle(frame, faces[newDetections[i]], Scalar(rand()%256,rand()%256, rand()%256), -1);
-                    peopleCount++;
-                    ui->lcdNumber->display(peopleCount);
+                // check if the tracker is captured
+                if (!(tracker.tracks[i]->captured) && tracker.tracks[i]->age > 5 && traceNum > 1) {
+                    // if the tracker is not captured and it has at least 2 trace points
+                    // calculate the distance of the last two traces
+                    Point2d diff = tracker.tracks[i]->trace[traceNum-1] - tracker.tracks[i]->trace[traceNum-2];
+                    double traceDistance = sqrtf(diff.x*diff.x+diff.y*diff.y);
+                    if (traceDistance < dstThreshold) {
+                        faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
+                        //saveFace(faceToSave);
+                        rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
+                        peopleCount++;
+                        ui->lcdNumber->display(peopleCount);
+                        tracker.tracks[i]->captured = true;
+                    }
                 }
             }
+
+//            if(newDetections.size() > 0) {
+//                // if we have new faces
+//                // save those faces
+//                for (int i = 0; i < newDetections.size(); i++) {
+//                    faceToSave = original(faces[newDetections[i]]);
+//                    saveFace(faceToSave);
+//                    rectangle(frame, faces[newDetections[i]], Scalar(rand()%256,rand()%256, rand()%256), -1);
+//                    peopleCount++;
+//                    ui->lcdNumber->display(peopleCount);
+//                }
+//            }
         }
 
         setImage(frame, ui->cameraView);
