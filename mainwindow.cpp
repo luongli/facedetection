@@ -116,11 +116,15 @@ void MainWindow::openCamera() {
         return;
     }
 
+    String videoAddress = "http://ip/mjpg/video.mjpg";
+    VideoCapture vcap;
     // open camera
-    cap = new VideoCapture(0); // default camera
-    if(!cap->isOpened()) {
+    //cap = new VideoCapture(0); // default camera
+    if(!vcap.open(videoAddress)) {
         cout << "Cannot open camera" << endl;
         return;
+    } else {
+        cout << "open camera successfully" << endl;
     }
 
     camOpened = true;
@@ -129,7 +133,7 @@ void MainWindow::openCamera() {
     if (loaded) {
         // if cascade files are loaded successfully
         // detect eyes & faces
-        detectFaceAndEyes();
+        detectFaceAndEyes(vcap);
     } else {
         showCamera();
     }
@@ -154,7 +158,7 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
 
 }
 
-void MainWindow::detectFaceAndEyes() {
+void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
 
     if (!loaded) return;
 
@@ -171,7 +175,12 @@ void MainWindow::detectFaceAndEyes() {
     vector<int> newDetections;
 
     while(openning) {
-        *cap >> original;
+        if(!vcap.read(original)) {
+            cout << "no frame" << endl;
+            break;
+        } else {
+            cout << "read camera successfully" << endl;
+        }
         // in case using front camera, flip image around y axis
         flip(original, original, 1);
         frame = original.clone();
