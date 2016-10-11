@@ -5,8 +5,12 @@
 #include <QObject>
 #include <stdio.h>
 #include <stdlib.h>
+#include <QPixmap>
+#include <QFileDialog>
 #include <QCloseEvent>
 #include <QShowEvent>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -32,12 +36,55 @@ Scalar Colors[] = {
     Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
     Scalar(255, 127, 255), Scalar(127, 0, 255), Scalar(127, 0, 127)
 };
-
+int locate = 0;
+int position = 0;
+QGraphicsRectItem	*	pRect = new QGraphicsRectItem( 0, 0, 0, 0 );
+QGraphicsScene* scene;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    QDir dir("/home/hembit/workspace/C++/facedetection/faces/");
+    dir.setNameFilters(QStringList() << "*.png" << "*.jpg");
+    QStringList fileList = dir.entryList();
+
+    scene = new QGraphicsScene();
+    QGraphicsView* view = ui->ImageView;
+    pRect->setBrush( Qt::white );
+    scene->addItem(pRect);
+
+    QPointF center = view->viewport()->rect().center();
+    //center = view->mapToScene(center);
+
+    //qDebug() << fileList;
+    foreach (QString path, fileList)
+    {
+
+        QPixmap pix("/home/hembit/workspace/C++/facedetection/faces/" + path);
+        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+        //scene->addPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
+        item->setParentItem(pRect);
+        item->setPos(position*100,0);
+        //int pos_x = view->horizontalScrollBar()->value();
+        //int pos_y = view->verticalScrollBar()->value();
+        scene->addItem(item);
+        //view->horizontalScrollBar()->setValue(pos_x);
+        //view->verticalScrollBar()->setValue(pos_y);
+        position++;
+        //QPointF point = itemUnderCursor->mapToScene(itemUnderCursor->boundingRect().topLeft());
+        //view->ensureVisible(item);
+
+    }
+    //view->ensureVisible(point);
+    view->centerOn(center);
+    //view->horizontalScrollBar()->setValue( view->horizontalScrollBar()->maximum() );
+    //view->horizontalScrollBar()->setValue
+    view->setScene(scene);
+    view->show();
+
+
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
 
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
@@ -293,6 +340,41 @@ void MainWindow::saveFace(Mat faceToSave) {
     try {
         imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
+
+        QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) faceToSave.data, faceToSave.cols, faceToSave.rows, faceToSave.step, QImage::Format_RGB888));
+        QGraphicsView* view = ui->ImageView;
+        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+
+        item->setParentItem(pRect);
+        item->setPos(position*100,0);
+        scene->addItem(item);
+        QPointF center = item->mapToScene(0,0);
+        position++;
+
+
+        if(position > 20) {
+
+//            QGraphicsScene* scene = widget->scene();
+//                QList<QGraphicsItem*> items = scene->items();
+//                for (int i = 0; i < items.size(); i++) {
+//                    scene->removeItem(items[i]);
+//                    delete items[i];
+//                }
+            QGraphicsItem *graphicItem = scene->itemAt(locate*100,0,QTransform());
+            scene->removeItem(graphicItem);
+            delete graphicItem;
+
+            locate++;
+            view->centerOn(center);
+            view->setScene(scene);
+            view->show();
+        } else {
+            view->centerOn(center);
+            view->setScene(scene);
+            view->show();
+        }
+
+
     } catch (runtime_error& ex) {
         ui->statusBar->showMessage("Exception converting image to PNG format");
     }

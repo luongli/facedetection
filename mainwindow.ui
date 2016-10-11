@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>796</width>
-    <height>477</height>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,9 +19,9 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QListView" name="listView">
+     <widget class="QGraphicsView" name="ImageView">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -31,6 +31,15 @@
         <width>16777215</width>
         <height>120</height>
        </size>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAsNeeded</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustIgnored</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
@@ -153,7 +162,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>
