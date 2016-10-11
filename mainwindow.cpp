@@ -55,6 +55,9 @@ MainWindow::MainWindow(QWidget *parent) :
     pRect->setBrush( Qt::white );
     scene->addItem(pRect);
 
+    QPointF center = view->viewport()->rect().center();
+    //center = view->mapToScene(center);
+
     //qDebug() << fileList;
     foreach (QString path, fileList)
     {
@@ -64,10 +67,20 @@ MainWindow::MainWindow(QWidget *parent) :
         //scene->addPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
         item->setParentItem(pRect);
         item->setPos(position*100,0);
+        //int pos_x = view->horizontalScrollBar()->value();
+        //int pos_y = view->verticalScrollBar()->value();
         scene->addItem(item);
+        //view->horizontalScrollBar()->setValue(pos_x);
+        //view->verticalScrollBar()->setValue(pos_y);
         position++;
+        //QPointF point = itemUnderCursor->mapToScene(itemUnderCursor->boundingRect().topLeft());
+        //view->ensureVisible(item);
 
     }
+    //view->ensureVisible(point);
+    view->centerOn(center);
+    //view->horizontalScrollBar()->setValue( view->horizontalScrollBar()->maximum() );
+    //view->horizontalScrollBar()->setValue
     view->setScene(scene);
     view->show();
 
@@ -304,30 +317,33 @@ void MainWindow::saveFace(Mat faceToSave) {
 
         QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) faceToSave.data, faceToSave.cols, faceToSave.rows, faceToSave.step, QImage::Format_RGB888));
         QGraphicsView* view = ui->ImageView;
-
         QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
-        cout << "saved" << endl;
+
         item->setParentItem(pRect);
         item->setPos(position*100,0);
         scene->addItem(item);
+        QPointF center = item->mapToScene(0,0);
         position++;
+
+
         if(position > 20) {
 
-            //QList<QGraphicsItem*> allGraphicsItems = scene->items();
-            //QGraphicsItem *graphicItem = allGraphicsItems[locate];
+//            QGraphicsScene* scene = widget->scene();
+//                QList<QGraphicsItem*> items = scene->items();
+//                for (int i = 0; i < items.size(); i++) {
+//                    scene->removeItem(items[i]);
+//                    delete items[i];
+//                }
             QGraphicsItem *graphicItem = scene->itemAt(locate*100,0,QTransform());
             scene->removeItem(graphicItem);
             delete graphicItem;
 
-            //scene->update();
-//            QPointer _item = scene->itemAt(locate,0);
-//            scene->removeItem(_item);
-//            delete _item;
-            cout << locate << endl;
             locate++;
+            view->centerOn(center);
             view->setScene(scene);
             view->show();
         } else {
+            view->centerOn(center);
             view->setScene(scene);
             view->show();
         }
