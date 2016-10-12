@@ -12,6 +12,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QInputDialog>
+#include <QLabel>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -114,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cout << "Cannot load file " << eyesCascadeFile << endl;
         loaded = false;
     }
-    ui->lcdNumber->display(90000);
+    //ui->lcdNumber->display(90000);
 }
 
 MainWindow::~MainWindow()
@@ -136,6 +137,10 @@ void MainWindow::showEvent(QShowEvent *ev) {
 
 void MainWindow::resizeEvent(QResizeEvent *ev) {
     setLogos();
+    if (vcap.isOpened()) {
+        vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+        vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+    }
 }
 
 void MainWindow::setLogos() {
@@ -187,6 +192,9 @@ void MainWindow::openCamera(String source) {
         }
     }
 
+    vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+    vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+
     //String videoAddress = "http://ip/mjpg/video.mjpg";
     camOpened = true;
     namedWindow("live video", 1);
@@ -204,7 +212,7 @@ void MainWindow::openCamera(String source) {
 }
 
 
-void MainWindow::setImage(Mat img, my_qlabel *label){
+void MainWindow::setImage(Mat img, QLabel *label){
     Mat img2=img.clone();
     QSize qSize=label->size();
     Size size(qSize.width(),qSize.height());
