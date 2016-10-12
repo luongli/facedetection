@@ -50,5 +50,4 @@ LIBS += -L/usr/local/lib \
 -lopencv_video \
 -lopencv_videoio \
 -lopencv_videostab \
--lopencv_viz \
 
