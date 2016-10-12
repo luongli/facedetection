@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    void setImage(Mat img, QLabel *label);
+    void setImage(Mat img, my_qlabel *label);
     ~MainWindow();
 
 public slots:

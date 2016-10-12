@@ -212,7 +212,7 @@ void MainWindow::openCamera(String source) {
 }
 
 
-void MainWindow::setImage(Mat img, QLabel *label){
+void MainWindow::setImage(Mat img, my_qlabel *label){
     Mat img2=img.clone();
     QSize qSize=label->size();
     Size size(qSize.width(),qSize.height());
