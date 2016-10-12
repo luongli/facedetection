@@ -12,6 +12,7 @@
 #include <QShowEvent>
 #include <QResizeEvent>
 #include <QInputDialog>
+#include <QLabel>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -40,7 +41,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    void setImage(Mat img, my_qlabel *label);
+    void setImage(Mat img, QLabel *label);
     ~MainWindow();
 
 public slots:
