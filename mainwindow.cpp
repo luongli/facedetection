@@ -257,7 +257,7 @@ void MainWindow::detectFaceAndEyes() {
         faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(40, 40));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
-            if(faces[i].width*faces[i].height<25000 && faces[i].width*faces[i].height>2000){
+            if(faces[i].width*faces[i].height>2000){
                 // draw a reactangle bounding each face
                 Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height );
                 centers.push_back(center);
