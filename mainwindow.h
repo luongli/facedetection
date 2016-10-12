@@ -11,6 +11,7 @@
 #include <QCloseEvent>
 #include <QShowEvent>
 #include <QResizeEvent>
+#include <QGraphicsScene>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -82,6 +83,8 @@ private:
     void saveFace(Mat faceToSave);
     int loadFaceIndex();
     void saveFaceIndex();
+    void clearScene(QGraphicsScene* scene);
+    void loadImagefromDir(/*QGraphicsScene* scene*/);
 };
 
 #endif // MAINWINDOW_H

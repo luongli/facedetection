@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>543</height>
+    <width>1064</width>
+    <height>820</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1366</width>
+    <height>870</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -25,6 +31,12 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>120</height>
+       </size>
       </property>
       <property name="maximumSize">
        <size>
@@ -60,6 +72,18 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>648</height>
+          </size>
+         </property>
          <property name="text">
           <string>TextLabel</string>
          </property>
@@ -68,7 +92,7 @@
        <item>
         <widget class="QFrame" name="frame_2">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -77,6 +101,12 @@
           <size>
            <width>120</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="frameShape">
@@ -89,7 +119,7 @@
           <item>
            <widget class="my_qlabel" name="hustLogo">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -98,6 +128,12 @@
              <size>
               <width>80</width>
               <height>120</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="baseSize">
@@ -114,7 +150,7 @@
           <item>
            <widget class="my_qlabel" name="soictLogo">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -161,7 +197,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
+     <width>1064</width>
      <height>19</height>
     </rect>
    </property>
