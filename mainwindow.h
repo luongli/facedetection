@@ -80,11 +80,13 @@ private:
     void resizeEvent(QResizeEvent *ev);
     void loadLogos();
     void setLogos();
-    void saveFace(Mat faceToSave);
+    void saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView * view, QGraphicsRectItem * pRect);
+    //void saveFace(Mat faceToSave, QGraphicsView * view);
     int loadFaceIndex();
     void saveFaceIndex();
     void clearScene(QGraphicsScene* scene);
     void loadImagefromDir(/*QGraphicsScene* scene*/);
+    void loadImageToScene(QGraphicsRectItem * pRect, Mat facetoSave, QGraphicsScene * scene, QGraphicsView * view);
 };
 
 #endif // MAINWINDOW_H

@@ -39,8 +39,10 @@ Scalar Colors[] = {
 int locate = 0;             // delete item at position locate
 int position = 0;           // track position of new item
 int constraint = 200;       // max item in view/scene
-QGraphicsRectItem	*	pRect = new QGraphicsRectItem( 0, 0, 0, 0 );
+QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
 QGraphicsScene* scene;
+QGraphicsView* view;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -48,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
-
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
     facesPath = "../facedetection/faces/";
@@ -234,7 +235,18 @@ void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
                     double traceDistance = sqrtf(diff.x*diff.x+diff.y*diff.y);
                     if (traceDistance < dstThreshold) {
                         faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
-                        saveFace(faceToSave);
+                        /***************************************
+                         *create unify scene, view, and rect
+                         **************************************/
+                        scene = new QGraphicsScene();
+                        view = ui->ImageView;
+//                        pRect =  new QGraphicsRectItem( 0, 0, 0, 0 );
+                        pRect->setBrush( Qt::white );
+                        scene->addItem(pRect);
+                        saveFace(faceToSave,scene,view, pRect);
+                        //saveFace(faceToSave);
+
+
                         rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
                         peopleCount++;
                         ui->lcdNumber->display(peopleCount);
@@ -295,63 +307,66 @@ void MainWindow::loadLogos() {
  * This function will save captured face into the disk at faces folder
  * and put the preview of that faces into the top qlistview
  * *******************************************************************/
-void MainWindow::saveFace(Mat faceToSave) {
+void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView * view, QGraphicsRectItem * pRect) {
     stringstream ss;
     ss << faceIndex;
     String fileName = ss.str();
     try {
-        imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
+        //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
-        scene = new QGraphicsScene();
-        QGraphicsView* view = ui->ImageView;
-//        if((position % 10)==5) {
-//            clearScene(scene);
-//               view->items().clear();
-//               view->resetCachedContent();
-//               view->updateGeometry();
-//               view->repaint();
-//               view->viewport()->update();
-//               view->show();
-////            clearScene(scene);
-////            scene->clear();
-////            view->acceptDrops()
-////            view->viewport()->update();
-////            view->setScene(scene);
-////            view->show();
-//            position++;
 
-////            //loadImagefromDir();
-//        } else {
-//            cout << "In anh moi ";
-//            cout << position << endl;
-            pRect->setBrush( Qt::white );
-            scene->addItem(pRect);
+                if((position % 10)==5) {
+                    scene->clear();
+                    QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
+                    view->viewport()->update();
+                    position = 0;
+                } else {
+                    QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+                    QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
+                    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
-            //scene = new QGraphicsScene();
+                    item->setParentItem(pRect);
+                    item->setPos(position*100,0);
+                    scene->addItem(item);
 
-            //QGraphicsView* view = ui->ImageView;
-            QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
-
-            //QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) rgb.data, rgb.cols, rgb.rows, rgb.step, QImage::Format_RGB888));
-            QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::AutoColor);
-            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
-
-            item->setParentItem(pRect);
-            item->setPos(position*100,0);
-            scene->addItem(item);
-
-            view->setScene(scene);
-            QPointF center = item->mapToScene(0,0);
-            view->centerOn(center);
-            view->show();
-            position++;
-//        }
+                    view->setScene(scene);
+                    QPointF center = item->mapToScene(0,0);
+                    view->centerOn(center);
+                    view->show();
+                    position++;
+                    qDebug() << scene->items().count();
+                    qDebug() << view->items().count();
+                }
 
 
     } catch (runtime_error& ex) {
         ui->statusBar->showMessage("Exception converting image to PNG format");
     }
 }
+
+/*****************************************************************
+ * Load item to Scene
+ *****************************************************************/
+void MainWindow::loadImageToScene(QGraphicsRectItem * pRect, Mat faceToSave, QGraphicsScene * scene, QGraphicsView * view)
+{
+    QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+
+    //QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) rgb.data, rgb.cols, rgb.rows, rgb.step, QImage::Format_RGB888));
+    QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::AutoColor);
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+
+    item->setParentItem(pRect);
+    item->setPos(position*100,0);
+    scene->addItem(item);
+    view->setScene(scene);
+    QPointF center = item->mapToScene(0,0);
+    view->centerOn(center);
+    view->show();
+    position++;
+    qDebug() << scene->items().count();
+    qDebug() << view->items().count();
+}
+
 
 /*****************************************************************
  * Load image from dir
@@ -400,6 +415,9 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
 
 }
 
+/*****************************************************
+ * This function controls how many item is cleared
+ *****************************************************/
 void MainWindow::clearScene(QGraphicsScene* scene)
 {
   QList<QGraphicsItem*> itemsList = scene->items();
