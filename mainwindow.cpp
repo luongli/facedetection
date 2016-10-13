@@ -322,30 +322,28 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     try {
         //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
+        position++;
+        if((position % 200)==0) {
+            scene->clear();
+            QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
+            view->viewport()->update();
+        } else {
+            QImage qimgOriginal = Mat2QImage(faceToSave);
+            //QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+            QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
+            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
-                if((position % 200)==0) {
-                    scene->clear();
-                    QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
-                    view->viewport()->update();
-                    position++;
-                } else {
-                    QImage qimgOriginal = Mat2QImage(faceToSave);
-                    //QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
-                    QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
-                    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+            item->setParentItem(pRect);
+            item->setPos(position*100,0);
+            scene->addItem(item);
 
-                    item->setParentItem(pRect);
-                    item->setPos(position*100,0);
-                    scene->addItem(item);
-
-                    view->setScene(scene);
-                    QPointF center = item->mapToScene(0,0);
-                    view->centerOn(center);
-                    view->show();
-                    position++;
-                    qDebug() << scene->items().count();
-                    qDebug() << view->items().count();
-                }
+            view->setScene(scene);
+            QPointF center = item->mapToScene(0,0);
+            view->centerOn(center);
+            view->show();
+            qDebug() << scene->items().count();
+            qDebug() << view->items().count();
+        }
 
 
     } catch (runtime_error& ex) {
