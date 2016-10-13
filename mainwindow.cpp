@@ -100,10 +100,10 @@ void MainWindow::showEvent(QShowEvent *ev) {
 
 void MainWindow::resizeEvent(QResizeEvent *ev) {
     setLogos();
-    if (vcap.isOpened()) {
-        vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
-        vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
-    }
+//    if (vcap.isOpened()) {
+//        vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+//        vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+//    }
 }
 
 void MainWindow::setLogos() {
@@ -155,8 +155,8 @@ void MainWindow::openCamera(String source) {
         }
     }
 
-    vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
-    vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+//    vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+//    vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
 
     //String videoAddress = "http://ip/mjpg/video.mjpg";
     camOpened = true;
@@ -211,6 +211,7 @@ void MainWindow::detectFaceAndEyes() {
             cout << "no frame" << endl;
             break;
         }
+        cv::resize(original, original, Size(640, 400));
         // in case using front camera, flip image around y axis
         flip(original, original, 1);
         frame = original.clone();
@@ -326,7 +327,7 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
                     scene->clear();
                     QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
                     view->viewport()->update();
-                    position = 0;
+                    position++;
                 } else {
                     QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
                     QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
