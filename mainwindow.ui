@@ -99,13 +99,13 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>120</width>
+           <width>180</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>120</width>
+           <width>182</width>
            <height>16777215</height>
           </size>
          </property>
@@ -117,63 +117,102 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="my_qlabel" name="hustLogo">
+           <widget class="my_qlabel" name="celebrateLogo">
+            <property name="minimumSize">
+             <size>
+              <width>160</width>
+              <height>106</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>160</width>
+              <height>106</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>celebrate</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="my_qlabel" name="hustLogo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="baseSize">
+               <size>
+                <width>80</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>HUST</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="my_qlabel" name="soictLogo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="baseSize">
+               <size>
+                <width>80</width>
+                <height>120</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>SoICT</string>
+              </property>
+              <property name="margin">
+               <number>2</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcdNumber">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>120</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>80</width>
-              <height>120</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>HUST</string>
-            </property>
            </widget>
-          </item>
-          <item>
-           <widget class="my_qlabel" name="soictLogo">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>120</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>80</width>
-              <height>120</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>SoICT</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLCDNumber" name="lcdNumber"/>
           </item>
          </layout>
         </widget>
@@ -197,11 +236,29 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1064</width>
-     <height>19</height>
+     <width>796</width>
+     <height>25</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuOpen">
+    <property name="title">
+     <string>Open</string>
+    </property>
+    <addaction name="actionDefault_camera"/>
+    <addaction name="actionIP_camera"/>
+   </widget>
+   <addaction name="menuOpen"/>
   </widget>
+  <action name="actionDefault_camera">
+   <property name="text">
+    <string>Default camera</string>
+   </property>
+  </action>
+  <action name="actionIP_camera">
+   <property name="text">
+    <string>IP camera</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

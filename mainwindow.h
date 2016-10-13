@@ -11,6 +11,8 @@
 #include <QCloseEvent>
 #include <QShowEvent>
 #include <QResizeEvent>
+#include <QInputDialog>
+#include <QLabel>
 #include <QGraphicsScene>
 
 // opencv lib
@@ -44,7 +46,8 @@ public:
     ~MainWindow();
 
 public slots:
-    void openCamera();
+    void openCamera(String source = "");    
+    void openIpCamera();
 private slots:
     //void on_pushButton_clicked();
 
@@ -61,10 +64,11 @@ private:
     String configPath;
     Mat hustLogo;
     Mat soictLogo;
+    Mat celebrateBg;
     Mat celebrateLogo;
+    VideoCapture vcap;
     CascadeClassifier faceCascade;
     CascadeClassifier eyesCascade;
-    VideoCapture* cap;
     vector<int> compression_params;
     bool loaded;
     bool camOpened;
@@ -73,7 +77,7 @@ private:
     int faceIndex;
     double dstThreshold;
 
-    void detectFaceAndEyes(VideoCapture vcap);
+    void detectFaceAndEyes();
     void showCamera();
     void closeEvent(QCloseEvent *ev);
     void showEvent(QShowEvent *ev);

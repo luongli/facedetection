@@ -11,6 +11,8 @@
 #include <QShowEvent>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
+#include <QInputDialog>
+#include <QLabel>
 
 // opencv lib
 #include <opencv2/core/core.hpp>
@@ -30,7 +32,7 @@ using namespace cv;
 using namespace std;
 
 // global variables
-CTracker tracker(0.2, 0.5, 60.0, 10, 10); // create a tracker
+CTracker tracker(0.2, 0.5, 200.0, 60, 50); // create a tracker
 Scalar Colors[] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255),
     Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
@@ -50,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
+    connect(ui->actionDefault_camera, SIGNAL(triggered(bool)), this, SLOT(openCamera()));
+    connect(ui->actionIP_camera, SIGNAL(triggered(bool)), this, SLOT(openIpCamera()));
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
     facesPath = "../facedetection/faces/";
@@ -74,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cout << "Cannot load file " << eyesCascadeFile << endl;
         loaded = false;
     }
+    //ui->lcdNumber->display(90000);
 }
 
 MainWindow::~MainWindow()
@@ -85,8 +90,7 @@ void MainWindow::closeEvent(QCloseEvent *ev) {
     cout << "closing" << endl;
     saveFaceIndex();
     openning = false;
-    cap->release();
-    delete cap;
+    vcap.release();
     destroyAllWindows();
 }
 
@@ -96,6 +100,10 @@ void MainWindow::showEvent(QShowEvent *ev) {
 
 void MainWindow::resizeEvent(QResizeEvent *ev) {
     setLogos();
+//    if (vcap.isOpened()) {
+//        vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+//        vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+//    }
 }
 
 void MainWindow::setLogos() {
@@ -112,38 +120,52 @@ void MainWindow::setLogos() {
         cout << "Soict logo is not loaded " << endl;
     }
 
+    if (celebrateBg.data) {
+        setImage(celebrateBg, ui->cameraView);
+        setImage(celebrateLogo, ui->celebrateLogo);
+    } else {
+        cout << "celebrate background is not loaded" << endl;
+    }
+
     if (celebrateLogo.data) {
-        setImage(celebrateLogo, ui->cameraView);
+        setImage(celebrateLogo, ui->celebrateLogo);
     } else {
         cout << "celebrate logo is not loaded" << endl;
     }
 }
 
-void MainWindow::openCamera() {
+void MainWindow::openCamera(String source) {
 
     if (camOpened) {
         cout << "Camera is being used" << endl;
         return;
     }
 
-    String videoAddress = "http://ip/mjpg/video.mjpg";
-    VideoCapture vcap(0);
-    // open camera
-    //cap = new VideoCapture(0); // default camera
-//    if(!vcap.open(videoAddress)) {
-//        cout << "Cannot open camera" << endl;
-//        return;
-//    } else {
-//        cout << "open camera successfully" << endl;
-//    }
+    if (source.empty()) {
+        if (!vcap.open(0)) {
+            ui->statusBar->showMessage("Cannot open default camera");
+            cout << "cannot open default camera" << endl;
+            return;
+        }
+    } else {
+        if(!vcap.open(source)) {
+            ui->statusBar->showMessage("Cannot open IP camera. Check your url");
+            cout << "Cannot open IP camera. Check your url" << endl;
+            return;
+        }
+    }
 
+//    vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
+//    vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
+
+    //String videoAddress = "http://ip/mjpg/video.mjpg";
     camOpened = true;
     namedWindow("live video", 1);
 
     if (loaded) {
         // if cascade files are loaded successfully
         // detect eyes & faces
-        detectFaceAndEyes(vcap);
+        detectFaceAndEyes();
     } else {
         showCamera();
     }
@@ -168,7 +190,7 @@ void MainWindow::setImage(Mat img, my_qlabel *label){
 
 }
 
-void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
+void MainWindow::detectFaceAndEyes() {
 
     if (!loaded) return;
 
@@ -188,31 +210,23 @@ void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
         if(!vcap.read(original)) {
             cout << "no frame" << endl;
             break;
-        } else {
-            //cout << "read camera successfully" << endl;
         }
+        cv::resize(original, original, Size(640, 400));
         // in case using front camera, flip image around y axis
         flip(original, original, 1);
         frame = original.clone();
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
-        faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(30, 30));
+        faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(40, 40));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
-            // draw a reactangle bounding each face
-            Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
-            centers.push_back(center);
-            rectangle(frame, faces[i], Scalar(255,0,0), 2);
-
-            // look for eyes in each face
-//            faceROI = grayFrame(faces[i]);
-//            eyesCascade.detectMultiScale(faceROI, eyes, 1.3, 2, 0, Size(30, 30));
-//            for( size_t j = 0; j < eyes.size(); j++ ){
-//                Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
-//                int radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
-//                circle( frame, center, radius, Scalar( 0, 255, 0 ), 4, 8, 0 );
-//            }
+            if(faces[i].width*faces[i].height>2000){
+                // draw a reactangle bounding each face
+                Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height );
+                centers.push_back(center);
+                rectangle(frame, faces[i], Scalar(255,0,0), 2);
+            }
         }
 
         // draw the trace of trackers
@@ -220,21 +234,26 @@ void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
             tracker.Update(centers, newDetections);
             int traceNum = 0;
             for (int i = 0; i < tracker.tracks.size(); i++) {
+                //cout << "assiged Id: " << tracker.tracks[i]->assignedDetectionId << endl;
+                if (tracker.tracks[i]->assignedDetectionId < 0) continue;
                 traceNum = tracker.tracks[i]->trace.size();
-                if (traceNum>3){
-                    for (int j = 0; j<tracker.tracks[i]->trace.size() - 1; j++){
+                if (traceNum>20){
+                    for (int j = traceNum-10; j<traceNum - 1; j++){
                         line(frame, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], Colors[tracker.tracks[i]->track_id % 9], 1, CV_AA);
                     }
                     circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
                 }
                 // check if the tracker is captured
-                if (!(tracker.tracks[i]->captured) && tracker.tracks[i]->age > 5 && traceNum > 1) {
+                if (!(tracker.tracks[i]->captured) && tracker.tracks[i]->age > 5 && traceNum > 3) {
                     // if the tracker is not captured and it has at least 2 trace points
                     // calculate the distance of the last two traces
                     Point2d diff = tracker.tracks[i]->trace[traceNum-1] - tracker.tracks[i]->trace[traceNum-2];
                     double traceDistance = sqrtf(diff.x*diff.x+diff.y*diff.y);
                     if (traceDistance < dstThreshold) {
+                        // if the moving speed is slow
+                        // take a picture of that person
                         faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
+
                         /***************************************
                          *create unify scene, view, and rect
                          **************************************/
@@ -244,34 +263,19 @@ void MainWindow::detectFaceAndEyes(VideoCapture vcap) {
                         pRect->setBrush( Qt::white );
                         scene->addItem(pRect);
                         saveFace(faceToSave,scene,view, pRect);
-                        //saveFace(faceToSave);
-
-
                         rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
+                        tracker.tracks[i]->captured = true;
                         peopleCount++;
                         ui->lcdNumber->display(peopleCount);
-                        tracker.tracks[i]->captured = true;
                     }
                 }
             }
-
-//            if(newDetections.size() > 0) {
-//                // if we have new faces
-//                // save those faces
-//                for (int i = 0; i < newDetections.size(); i++) {
-//                    faceToSave = original(faces[newDetections[i]]);
-//                    saveFace(faceToSave);
-//                    rectangle(frame, faces[newDetections[i]], Scalar(rand()%256,rand()%256, rand()%256), -1);
-//                    peopleCount++;
-//                    ui->lcdNumber->display(peopleCount);
-//                }
-//            }
         }
 
         setImage(frame, ui->cameraView);
         imshow("live video", frame);
         if(waitKey(30) >= 0) {
-            cap->release();
+            vcap.release();
             camOpened = false;
             break;
         }
@@ -282,13 +286,16 @@ void MainWindow::showCamera() {
     Mat frame;
 
     while(openning) {
-        *cap >> frame;
+        if(!vcap.read(frame)) {
+            cout << "no frame" << endl;
+            break;
+        }
         // in case using front camera, flip image around y axis
         flip(frame, frame, 1);
         imshow("live video", frame);
         setImage(frame, ui->cameraView);
         if(waitKey(30) >= 0) {
-            cap->release();
+            vcap.release();
             camOpened = false;
             break;
         }
@@ -298,8 +305,9 @@ void MainWindow::showCamera() {
 
 void MainWindow::loadLogos() {
     hustLogo = imread(logoPath + "hust.png", CV_LOAD_IMAGE_COLOR);
-    soictLogo = imread(logoPath + "soict.png", CV_LOAD_IMAGE_COLOR);
+    soictLogo = imread(logoPath + "soict.jpg", CV_LOAD_IMAGE_COLOR);
     celebrateLogo = imread(logoPath + "logo60.png", CV_LOAD_IMAGE_COLOR);
+    celebrateBg = imread(logoPath + "logo60bg.png", CV_LOAD_IMAGE_COLOR);
 }
 
 
@@ -315,11 +323,11 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
         //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
 
-                if((position % 10)==5) {
+                if((position % 200)==0) {
                     scene->clear();
                     QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
                     view->viewport()->update();
-                    position = 0;
+                    position++;
                 } else {
                     QImage qimgOriginal = Mat2QImage(faceToSave);
                     //QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
@@ -472,5 +480,18 @@ void MainWindow::saveFaceIndex() {
     } else {
         cout << "cannot open file" << endl;
         ui->statusBar->showMessage("Error: Cannot save face index", 1000);
+    }
+}
+
+
+void MainWindow::openIpCamera() {
+    // ask for video link
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Video Stream Adress"),
+                                         tr("Input video stream address including username and password of the ip camera"), QLineEdit::Normal,
+                                         QDir::home().dirName(), &ok);
+    if (ok && !text.isEmpty()) {
+        String address = text.toStdString();
+        openCamera(address);
     }
 }

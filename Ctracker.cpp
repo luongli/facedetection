@@ -17,7 +17,7 @@ CTrack::CTrack(Point2f pt, float dt, float Accel_noise_mag)
     KF = new TKalmanFilter(pt,dt,Accel_noise_mag);
     // Here stored points coordinates, used for next position prediction.
     prediction=pt;
-    assignedDetectionId = 0;
+    assignedDetectionId = -1;
     captured = false;
     age = 0;
     skipped_frames=0;
@@ -122,6 +122,7 @@ void CTracker::Update(vector<Point2d>& detections, vector<int>& newDetections)
         {
             // If track have no assigned detect, then increment skipped frames counter.
             tracks[i]->skipped_frames++;
+            tracks[i]->assignedDetectionId = -1;
         }
 
     }
