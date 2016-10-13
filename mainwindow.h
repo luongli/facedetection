@@ -85,6 +85,7 @@ private:
     int loadFaceIndex();
     void saveFaceIndex();
     void clearScene(QGraphicsScene* scene);
+    QImage Mat2QImage(cv::Mat const& src);
     void loadImagefromDir(/*QGraphicsScene* scene*/);
     void loadImageToScene(QGraphicsRectItem * pRect, Mat facetoSave, QGraphicsScene * scene, QGraphicsView * view);
 };
