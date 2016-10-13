@@ -38,59 +38,22 @@ Scalar Colors[] = {
     Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
     Scalar(255, 127, 255), Scalar(127, 0, 255), Scalar(127, 0, 127)
 };
-int locate = 0;
-int position = 0;
-QGraphicsRectItem	*	pRect = new QGraphicsRectItem( 0, 0, 0, 0 );
+int locate = 0;             // delete item at position locate
+int position = 0;           // track position of new item
+int constraint = 200;       // max item in view/scene
+QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
 QGraphicsScene* scene;
+QGraphicsView* view;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    QDir dir("/home/hembit/workspace/C++/facedetection/faces/");
-    dir.setNameFilters(QStringList() << "*.png" << "*.jpg");
-    QStringList fileList = dir.entryList();
-
-    scene = new QGraphicsScene();
-    QGraphicsView* view = ui->ImageView;
-    pRect->setBrush( Qt::white );
-    scene->addItem(pRect);
-
-    QPointF center = view->viewport()->rect().center();
-    //center = view->mapToScene(center);
-
-    //qDebug() << fileList;
-    foreach (QString path, fileList)
-    {
-
-        QPixmap pix("/home/hembit/workspace/C++/facedetection/faces/" + path);
-        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
-        //scene->addPixmap(pix.scaled(60,60,Qt::KeepAspectRatio));
-        item->setParentItem(pRect);
-        item->setPos(position*100,0);
-        //int pos_x = view->horizontalScrollBar()->value();
-        //int pos_y = view->verticalScrollBar()->value();
-        scene->addItem(item);
-        //view->horizontalScrollBar()->setValue(pos_x);
-        //view->verticalScrollBar()->setValue(pos_y);
-        position++;
-        //QPointF point = itemUnderCursor->mapToScene(itemUnderCursor->boundingRect().topLeft());
-        //view->ensureVisible(item);
-
-    }
-    //view->ensureVisible(point);
-    view->centerOn(center);
-    //view->horizontalScrollBar()->setValue( view->horizontalScrollBar()->maximum() );
-    //view->horizontalScrollBar()->setValue
-    view->setScene(scene);
-    view->show();
-
-
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
     connect(ui->actionDefault_camera, SIGNAL(triggered(bool)), this, SLOT(openCamera()));
     connect(ui->actionIP_camera, SIGNAL(triggered(bool)), this, SLOT(openIpCamera()));
-
     faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
     facesPath = "../facedetection/faces/";
@@ -289,7 +252,16 @@ void MainWindow::detectFaceAndEyes() {
                         // if the moving speed is slow
                         // take a picture of that person
                         faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
-                        saveFace(faceToSave);
+
+                        /***************************************
+                         *create unify scene, view, and rect
+                         **************************************/
+                        scene = new QGraphicsScene();
+                        view = ui->ImageView;
+//                        pRect =  new QGraphicsRectItem( 0, 0, 0, 0 );
+                        pRect->setBrush( Qt::white );
+                        scene->addItem(pRect);
+                        saveFace(faceToSave,scene,view, pRect);
                         rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
                         tracker.tracks[i]->captured = true;
                         peopleCount++;
@@ -342,46 +314,36 @@ void MainWindow::loadLogos() {
  * This function will save captured face into the disk at faces folder
  * and put the preview of that faces into the top qlistview
  * *******************************************************************/
-void MainWindow::saveFace(Mat faceToSave) {
+void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView * view, QGraphicsRectItem * pRect) {
     stringstream ss;
     ss << faceIndex;
     String fileName = ss.str();
     try {
-        imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
+        //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
 
-        QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) faceToSave.data, faceToSave.cols, faceToSave.rows, faceToSave.step, QImage::Format_RGB888));
-        QGraphicsView* view = ui->ImageView;
-        QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+                if((position % 10)==5) {
+                    scene->clear();
+                    QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
+                    view->viewport()->update();
+                    position = 0;
+                } else {
+                    QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+                    QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
+                    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
-        item->setParentItem(pRect);
-        item->setPos(position*100,0);
-        scene->addItem(item);
-        QPointF center = item->mapToScene(0,0);
-        position++;
+                    item->setParentItem(pRect);
+                    item->setPos(position*100,0);
+                    scene->addItem(item);
 
-
-        if(position > 20) {
-
-//            QGraphicsScene* scene = widget->scene();
-//                QList<QGraphicsItem*> items = scene->items();
-//                for (int i = 0; i < items.size(); i++) {
-//                    scene->removeItem(items[i]);
-//                    delete items[i];
-//                }
-            QGraphicsItem *graphicItem = scene->itemAt(locate*100,0,QTransform());
-            scene->removeItem(graphicItem);
-            delete graphicItem;
-
-            locate++;
-            view->centerOn(center);
-            view->setScene(scene);
-            view->show();
-        } else {
-            view->centerOn(center);
-            view->setScene(scene);
-            view->show();
-        }
+                    view->setScene(scene);
+                    QPointF center = item->mapToScene(0,0);
+                    view->centerOn(center);
+                    view->show();
+                    position++;
+                    qDebug() << scene->items().count();
+                    qDebug() << view->items().count();
+                }
 
 
     } catch (runtime_error& ex) {
@@ -389,6 +351,93 @@ void MainWindow::saveFace(Mat faceToSave) {
     }
 }
 
+/*****************************************************************
+ * Load item to Scene
+ *****************************************************************/
+void MainWindow::loadImageToScene(QGraphicsRectItem * pRect, Mat faceToSave, QGraphicsScene * scene, QGraphicsView * view)
+{
+    QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+
+    //QPixmap pix = QPixmap::fromImage(QImage((unsigned char*) rgb.data, rgb.cols, rgb.rows, rgb.step, QImage::Format_RGB888));
+    QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::AutoColor);
+    QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+
+    item->setParentItem(pRect);
+    item->setPos(position*100,0);
+    scene->addItem(item);
+    view->setScene(scene);
+    QPointF center = item->mapToScene(0,0);
+    view->centerOn(center);
+    view->show();
+    position++;
+    qDebug() << scene->items().count();
+    qDebug() << view->items().count();
+}
+
+
+/*****************************************************************
+ * Load image from dir
+ *****************************************************************/
+void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
+{
+        position = 0;
+        QDir dir("../facedetection/faces/");
+        dir.setNameFilters(QStringList() << "*.png" << "*.jpg");
+        QStringList fileList = dir.entryList();
+
+        scene = new QGraphicsScene();
+        QGraphicsView* view = ui->ImageView;
+        pRect->setBrush( Qt::white );
+        scene->addItem(pRect);
+
+        //QPointF center = view->viewport()->rect().center();
+        for (int i = fileList.length()-5; i < fileList.length(); i++)
+        {
+            QPixmap pix("../facedetection/faces/" + fileList[i]);
+            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+            item->setParentItem(pRect);
+            item->setPos(position*100,0);
+            scene->addItem(item);
+            view->setScene(scene);
+
+
+            QPointF center = item->mapToScene(0,0);
+            view->centerOn(center);
+            view->show();
+            position++;
+        }
+        cout << "After add dir ";
+        cout << position << endl;
+//        foreach (QString path, fileList)
+//        {
+//            QPixmap pix("../facedetection/faces/" + path);
+//            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+//            item->setParentItem(pRect);
+//            item->setPos(position*100,0);
+//            scene->addItem(item);
+//            position++;
+//        }
+
+
+
+}
+
+/*****************************************************
+ * This function controls how many item is cleared
+ *****************************************************/
+void MainWindow::clearScene(QGraphicsScene* scene)
+{
+  QList<QGraphicsItem*> itemsList = scene->items();
+  QList<QGraphicsItem*>::iterator iter = itemsList.begin();
+  QList<QGraphicsItem*>::iterator end = itemsList.end();
+  while(iter != end)
+    {
+      QGraphicsItem* item = (*iter);
+      scene->removeItem(item);
+      delete item;
+      iter++;
+    }
+}
 
 int MainWindow::loadFaceIndex() {
     ui->statusBar->showMessage("Loading face index...");
