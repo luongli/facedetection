@@ -329,7 +329,8 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
                     view->viewport()->update();
                     position++;
                 } else {
-                    QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+                    QImage qimgOriginal = Mat2QImage(faceToSave);
+                    //QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
                     QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
                     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
@@ -421,6 +422,16 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
 
 
 
+}
+
+QImage MainWindow::Mat2QImage(cv::Mat const& src)
+{
+     cv::Mat temp; // make the same cv::Mat
+     cvtColor(src, temp,CV_BGR2RGB); // cvtColor Makes a copt, that what i need
+     QImage dest((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+     dest.bits(); // enforce deep copy, see documentation
+     // of QImage::QImage ( const uchar * data, int width, int height, Format format )
+     return dest;
 }
 
 /*****************************************************
