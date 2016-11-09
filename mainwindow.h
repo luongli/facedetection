@@ -92,6 +92,8 @@ private:
     QImage Mat2QImage(cv::Mat const& src);
     void loadImagefromDir(/*QGraphicsScene* scene*/);
     void loadImageToScene(QGraphicsRectItem * pRect, Mat facetoSave, QGraphicsScene * scene, QGraphicsView * view);
+    void saveCountIndex();
+    int loadCountIndex();
 };
 
 #endif // MAINWINDOW_H
