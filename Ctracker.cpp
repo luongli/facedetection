@@ -20,6 +20,7 @@ CTrack::CTrack(Point2f pt, float dt, float Accel_noise_mag)
     assignedDetectionId = -1;
     captured = false;
     age = 0;
+    trueCount = 0;
     skipped_frames=0;
     crossBorder = 0;
 }

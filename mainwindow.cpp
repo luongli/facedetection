@@ -243,22 +243,31 @@ void MainWindow::detectFaceAndEyes() {
                     }
                     circle(frame, tracker.tracks[i]->trace[traceNum - 1], 2, Colors[tracker.tracks[i]->track_id % 9], 2, 8, 0);
                 }
-                // check if the tracker is captured
-                if (!(tracker.tracks[i]->captured) && tracker.tracks[i]->age > 5 && traceNum > 3) {
+                // check if the tracker is captured  && tracker.tracks[i]->age > 5 && traceNum > 3
+                if (!(tracker.tracks[i]->captured)) {
                     // if the tracker is not captured and it has at least 2 trace points
                     // calculate the distance of the last two traces
                     faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
                     bool isFace = recheckFace(&faceToSave);
-                    cout << "isFace = " << isFace << endl;
+                    //cout << "isFace = " << isFace << endl;
+
                     if (isFace) {
-                        /***************************************
-                         *create unify scene, view, and rect
-                         **************************************/
-                        saveFace(faceToSave,scene,view, pRect);
-                        rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
-                        tracker.tracks[i]->captured = true;
-                        peopleCount++;
-                        ui->lcdNumber->display(peopleCount);
+                        tracker.tracks[i]->trueCount++;
+                    }
+
+                    if (tracker.tracks[i]->age >= 10) {
+                        if (tracker.tracks[i]->trueCount >= 7) {
+                            // test the face for 10 times
+                            // if it's 7 out of 10 detected as a face, save it
+                            saveFace(faceToSave,scene,view, pRect);
+                            rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
+                            tracker.tracks[i]->captured = true;
+                            peopleCount++;
+                            ui->lcdNumber->display(peopleCount);
+                        } else {
+                            // otherwise we ignore it
+                            tracker.tracks[i]->captured = true;
+                        }
                     }
                 }
             }

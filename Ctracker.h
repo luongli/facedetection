@@ -19,6 +19,7 @@ public:
     Point2d prediction;
     int assignedDetectionId;
     int age;
+    int trueCount;
     TKalmanFilter* KF;
     CTrack(Point2f p, float dt, float Accel_noise_mag);
     ~CTrack();
