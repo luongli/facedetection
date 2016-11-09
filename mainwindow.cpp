@@ -32,7 +32,7 @@ using namespace cv;
 using namespace std;
 
 // global variables
-CTracker tracker(0.2, 0.5, 200.0, 60, 50); // create a tracker
+CTracker tracker(0.2, 0.5, 200.0, 30, 40); // create a tracker
 Scalar Colors[] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255),
     Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
@@ -50,11 +50,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Check In Here");
 
     connect(ui->cameraView, SIGNAL(Mouse_Pressed()), this, SLOT(openCamera()));
     connect(ui->actionDefault_camera, SIGNAL(triggered(bool)), this, SLOT(openCamera()));
     connect(ui->actionIP_camera, SIGNAL(triggered(bool)), this, SLOT(openIpCamera()));
-    faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_default.xml";
+    faceCascadeFile = "../facedetection/xml-features/haarcascade_frontalface_alt.xml";
     eyesCascadeFile = "../facedetection/xml-features/haarcascade_eye.xml";
     facesPath = "../facedetection/faces/";
     configPath = "../facedetection/config/";
@@ -62,9 +63,9 @@ MainWindow::MainWindow(QWidget *parent) :
     loaded = true;
     camOpened = false;
     openning = true;
-    peopleCount = 0;
+    peopleCount = loadCountIndex();
     faceIndex = loadFaceIndex();
-    dstThreshold = 3;
+    dstThreshold = 5;
     // params to save images
     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(5);
@@ -78,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cout << "Cannot load file " << eyesCascadeFile << endl;
         loaded = false;
     }
-    //ui->lcdNumber->display(90000);
+    ui->lcdNumber->display(peopleCount);
 }
 
 MainWindow::~MainWindow()
@@ -89,6 +90,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *ev) {
     cout << "closing" << endl;
     saveFaceIndex();
+    saveCountIndex();
     openning = false;
     vcap.release();
     destroyAllWindows();
@@ -218,14 +220,15 @@ void MainWindow::detectFaceAndEyes() {
         cvtColor(frame, grayFrame, COLOR_BGR2GRAY);
 
         // look for faces in the frame
-        faceCascade.detectMultiScale(grayFrame, faces, 1.3, 2, 0, Size(40, 40));
+        faceCascade.detectMultiScale(grayFrame, faces, 1.2, 2, 0, Size(20, 20));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
-            if(faces[i].width*faces[i].height>2000){
+            if(faces[i].width*faces[i].height>400 && faces[i].width*faces[i].height<10000  && (faces[i].x>70 || faces[i].x<45 ) && (faces[i].x>500 || faces[i].x<450) && faces[i].y<240){
                 // draw a reactangle bounding each face
                 Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height );
                 centers.push_back(center);
                 rectangle(frame, faces[i], Scalar(255,0,0), 2);
+                //cout<<faces[i].x<<" "<<faces[i].y<<" "<<faces[i].height*faces[i].width<<endl;
             }
         }
 
@@ -249,6 +252,7 @@ void MainWindow::detectFaceAndEyes() {
                     // calculate the distance of the last two traces
                     Point2d diff = tracker.tracks[i]->trace[traceNum-1] - tracker.tracks[i]->trace[traceNum-2];
                     double traceDistance = sqrtf(diff.x*diff.x+diff.y*diff.y);
+                    cout << dstThreshold << endl;
                     if (traceDistance < dstThreshold) {
                         // if the moving speed is slow
                         // take a picture of that person
@@ -273,7 +277,7 @@ void MainWindow::detectFaceAndEyes() {
         }
 
         setImage(frame, ui->cameraView);
-        imshow("live video", frame);
+        //imshow("live video", frame);
         if(waitKey(30) >= 0) {
             vcap.release();
             camOpened = false;
@@ -320,7 +324,7 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     ss << faceIndex;
     String fileName = ss.str();
     try {
-        //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
+        imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
         position++;
         if((position % 200)==0) {
@@ -501,6 +505,22 @@ int MainWindow::loadFaceIndex() {
     }
 }
 
+int MainWindow::loadCountIndex() {
+    ui->statusBar->showMessage("Loading face index...");
+    ifstream input((configPath + "count.conf").c_str(), ios::in);
+    int index = 0;
+    if(input.is_open()) {
+        input >> index;
+        input.close();
+        ui->statusBar->clearMessage();
+        return index;
+    } else {
+        cout << "Be careful! face index is not loaded successfully" << endl;
+        ui->statusBar->showMessage("Error: face index is not loaded successfully", 1000);
+        return 0;
+    }
+}
+
 
 void MainWindow::saveFaceIndex() {
     ui->statusBar->showMessage("Saving face index...");
@@ -509,6 +529,21 @@ void MainWindow::saveFaceIndex() {
         // if the file is open successfully
 
         output << faceIndex << "\n";
+        output.close();
+        ui->statusBar->showMessage("Face index saved", 1000);
+    } else {
+        cout << "cannot open file" << endl;
+        ui->statusBar->showMessage("Error: Cannot save face index", 1000);
+    }
+}
+
+void MainWindow::saveCountIndex() {
+    ui->statusBar->showMessage("Saving face index...");
+    ofstream output((configPath + "count.conf").c_str(), ios::out|ios::trunc);
+    if(output.is_open()) {
+        // if the file is open successfully
+
+        output << peopleCount << "\n";
         output.close();
         ui->statusBar->showMessage("Face index saved", 1000);
     } else {
