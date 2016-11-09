@@ -322,7 +322,18 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     try {
         //imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
+        position++;
+        if((position % 200)==0) {
+            scene->clear();
+            QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
+            view->viewport()->update();
+        } else {
+            QImage qimgOriginal = Mat2QImage(faceToSave);
+            //QImage qimgOriginal((uchar*)faceToSave.data,faceToSave.cols,faceToSave.rows,faceToSave.step,QImage::Format_RGB888);
+            QPixmap pix = QPixmap::fromImage(qimgOriginal,Qt::ColorMode_Mask);
+            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
 
+<<<<<<< HEAD
                 if((position % 200)==0) {
                     scene->clear();
                     QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
@@ -346,6 +357,19 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
                     qDebug() << scene->items().count();
                     qDebug() << view->items().count();
                 }
+=======
+            item->setParentItem(pRect);
+            item->setPos(position*100,0);
+            scene->addItem(item);
+
+            view->setScene(scene);
+            QPointF center = item->mapToScene(0,0);
+            view->centerOn(center);
+            view->show();
+            qDebug() << scene->items().count();
+            qDebug() << view->items().count();
+        }
+>>>>>>> 84853d8429ee80db218cf3ed4bf202e4c522e7f9
 
 
     } catch (runtime_error& ex) {
@@ -432,6 +456,16 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
 
 
 
+}
+
+QImage MainWindow::Mat2QImage(cv::Mat const& src)
+{
+     cv::Mat temp; // make the same cv::Mat
+     cvtColor(src, temp,CV_BGR2RGB); // cvtColor Makes a copt, that what i need
+     QImage dest((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+     dest.bits(); // enforce deep copy, see documentation
+     // of QImage::QImage ( const uchar * data, int width, int height, Format format )
+     return dest;
 }
 
 /*****************************************************
