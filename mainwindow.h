@@ -94,6 +94,7 @@ private:
     void loadImageToScene(QGraphicsRectItem * pRect, Mat facetoSave, QGraphicsScene * scene, QGraphicsView * view);
     void saveCountIndex();
     int loadCountIndex();
+    bool recheckFace(Mat *face);
 };
 
 #endif // MAINWINDOW_H

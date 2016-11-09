@@ -32,7 +32,7 @@ using namespace cv;
 using namespace std;
 
 // global variables
-CTracker tracker(0.2, 0.5, 200.0, 30, 40); // create a tracker
+CTracker tracker(0.2, 0.5, 100.0, 30, 40); // create a tracker
 Scalar Colors[] = {
     Scalar(255, 0, 0), Scalar(0, 255, 0), Scalar(0, 0, 255),
     Scalar(255, 255, 0), Scalar(50, 100, 200), Scalar(255, 0, 255),
@@ -102,10 +102,6 @@ void MainWindow::showEvent(QShowEvent *ev) {
 
 void MainWindow::resizeEvent(QResizeEvent *ev) {
     setLogos();
-//    if (vcap.isOpened()) {
-//        vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
-//        vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
-//    }
 }
 
 void MainWindow::setLogos() {
@@ -157,9 +153,6 @@ void MainWindow::openCamera(String source) {
         }
     }
 
-//    vcap.set(CAP_PROP_FRAME_WIDTH, ui->cameraView->width());
-//    vcap.set(CAP_PROP_FRAME_HEIGHT, ui->cameraView->height());
-
     //String videoAddress = "http://ip/mjpg/video.mjpg";
     camOpened = true;
     namedWindow("live video", 1);
@@ -207,6 +200,10 @@ void MainWindow::detectFaceAndEyes() {
     // variables used for tracking
     vector<Point2d> centers;
     vector<int> newDetections;
+    scene = new QGraphicsScene();
+    view = ui->ImageView;
+    pRect->setBrush( Qt::white );
+    scene->addItem(pRect);
 
     while(openning) {
         if(!vcap.read(original)) {
@@ -223,7 +220,7 @@ void MainWindow::detectFaceAndEyes() {
         faceCascade.detectMultiScale(grayFrame, faces, 1.2, 2, 0, Size(20, 20));
         centers.clear(); // clear all previous center points
         for( size_t i = 0; i < faces.size(); i++ ) {
-            if(faces[i].width*faces[i].height>400 && faces[i].width*faces[i].height<10000  && (faces[i].x>70 || faces[i].x<45 ) && (faces[i].x>500 || faces[i].x<450) && faces[i].y<240){
+            if(faces[i].width*faces[i].height>400){
                 // draw a reactangle bounding each face
                 Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height );
                 centers.push_back(center);
@@ -250,22 +247,13 @@ void MainWindow::detectFaceAndEyes() {
                 if (!(tracker.tracks[i]->captured) && tracker.tracks[i]->age > 5 && traceNum > 3) {
                     // if the tracker is not captured and it has at least 2 trace points
                     // calculate the distance of the last two traces
-                    Point2d diff = tracker.tracks[i]->trace[traceNum-1] - tracker.tracks[i]->trace[traceNum-2];
-                    double traceDistance = sqrtf(diff.x*diff.x+diff.y*diff.y);
-                    cout << dstThreshold << endl;
-                    if (traceDistance < dstThreshold) {
-                        // if the moving speed is slow
-                        // take a picture of that person
-                        faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
-
+                    faceToSave = original(faces[tracker.tracks[i]->assignedDetectionId]);
+                    bool isFace = recheckFace(&faceToSave);
+                    cout << "isFace = " << isFace << endl;
+                    if (isFace) {
                         /***************************************
                          *create unify scene, view, and rect
                          **************************************/
-                        scene = new QGraphicsScene();
-                        view = ui->ImageView;
-//                        pRect =  new QGraphicsRectItem( 0, 0, 0, 0 );
-                        pRect->setBrush( Qt::white );
-                        scene->addItem(pRect);
                         saveFace(faceToSave,scene,view, pRect);
                         rectangle(frame, faces[tracker.tracks[i]->assignedDetectionId], Scalar(rand()%256,rand()%256, rand()%256), -1);
                         tracker.tracks[i]->captured = true;
@@ -327,7 +315,7 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
         imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
         position++;
-        if((position % 200)==0) {
+        if((position % 200)==199) {
             scene->clear();
             QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
             view->viewport()->update();
@@ -412,18 +400,6 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
         }
         cout << "After add dir ";
         cout << position << endl;
-//        foreach (QString path, fileList)
-//        {
-//            QPixmap pix("../facedetection/faces/" + path);
-//            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
-//            item->setParentItem(pRect);
-//            item->setPos(position*100,0);
-//            scene->addItem(item);
-//            position++;
-//        }
-
-
-
 }
 
 QImage MainWindow::Mat2QImage(cv::Mat const& src)
@@ -527,4 +503,18 @@ void MainWindow::openIpCamera() {
         String address = text.toStdString();
         openCamera(address);
     }
+}
+
+bool MainWindow::recheckFace(Mat *face){
+    vector<Rect> faces;
+
+    Size s = face->size();
+
+    faceCascade.detectMultiScale(*face, faces, 1.2, 2, 0, Size(s.width/1.5, s.height/1.5));
+
+    if (faces.size() <= 0) {
+        return false;
+    }
+
+    return true;
 }
