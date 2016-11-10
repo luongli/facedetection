@@ -3,4 +3,4 @@
 # captured faces
 faces/*
 # config file
-config/*
+config/face-index.conf

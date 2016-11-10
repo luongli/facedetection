@@ -269,6 +269,7 @@ void MainWindow::detectFaceAndEyes() {
                             tracker.tracks[i]->captured = true;
                         }
                     }
+
                 }
             }
         }
@@ -323,8 +324,8 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     try {
         imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
-        position++;
-        if((position % 200)==199) {
+
+        if((position % 200)==0) {
             scene->clear();
             QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
             view->viewport()->update();
@@ -339,18 +340,22 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
             scene->addItem(item);
 
             view->setScene(scene);
-            QPointF center = item->mapToScene(0,0);
+            QPointF center = item->mapToScene(scene->width(), scene->height());
             view->centerOn(center);
             view->show();
-            qDebug() << scene->items().count();
+
             qDebug() << view->items().count();
+            qDebug() << position;
         }
+        position++;
+
 
 
     } catch (runtime_error& ex) {
         ui->statusBar->showMessage("Exception converting image to PNG format");
     }
 }
+
 
 /*****************************************************************
  * Load item to Scene
@@ -392,7 +397,8 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
         scene->addItem(pRect);
 
         //QPointF center = view->viewport()->rect().center();
-        for (int i = fileList.length()-5; i < fileList.length(); i++)
+        //for (int i = fileList.length()-5; i < fileList.length(); i++)
+        for (int i = 0; i < fileList.length(); i++)
         {
             QPixmap pix("../facedetection/faces/" + fileList[i]);
             QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
@@ -401,7 +407,6 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
             scene->addItem(item);
             view->setScene(scene);
 
-
             QPointF center = item->mapToScene(0,0);
             view->centerOn(center);
             view->show();
@@ -409,6 +414,17 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
         }
         cout << "After add dir ";
         cout << position << endl;
+
+//        foreach (QString path, fileList)
+//        {
+//            QPixmap pix("../facedetection/faces/" + path);
+//            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+//            item->setParentItem(pRect);
+//            item->setPos(position*100,0);
+//            scene->addItem(item);
+//            position++;
+//        }
+
 }
 
 QImage MainWindow::Mat2QImage(cv::Mat const& src)
