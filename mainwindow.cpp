@@ -354,6 +354,7 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     }
 }
 
+
 /*****************************************************************
  * Load item to Scene
  *****************************************************************/
@@ -411,6 +412,17 @@ void MainWindow::loadImagefromDir(/*QGraphicsScene* scene*/)
         }
         cout << "After add dir ";
         cout << position << endl;
+
+//        foreach (QString path, fileList)
+//        {
+//            QPixmap pix("../facedetection/faces/" + path);
+//            QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pix.scaled(100,100,Qt::KeepAspectRatio),pRect);
+//            item->setParentItem(pRect);
+//            item->setPos(position*100,0);
+//            scene->addItem(item);
+//            position++;
+//        }
+
 }
 
 QImage MainWindow::Mat2QImage(cv::Mat const& src)
