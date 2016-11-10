@@ -323,7 +323,7 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
     try {
         imwrite(facesPath + fileName + ".png", faceToSave, compression_params);
         faceIndex++;
-        position++;
+
         if((position % 200)==199) {
             scene->clear();
             QGraphicsRectItem	*	pRect  =  new QGraphicsRectItem( 0, 0, 0, 0 );
@@ -344,7 +344,9 @@ void MainWindow::saveFace(Mat faceToSave, QGraphicsScene * scene, QGraphicsView 
             view->show();
             qDebug() << scene->items().count();
             qDebug() << view->items().count();
+            qDebug() << position;
         }
+        position++;
 
 
     } catch (runtime_error& ex) {

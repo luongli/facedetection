@@ -48,7 +48,7 @@
        <enum>Qt::ScrollBarAsNeeded</enum>
       </property>
       <property name="sizeAdjustPolicy">
-       <enum>QAbstractScrollArea::AdjustIgnored</enum>
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -268,7 +268,7 @@
      <x>0</x>
      <y>0</y>
      <width>1064</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOpen">
